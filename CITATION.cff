@@ -1,0 +1,11 @@
+cff-version: 1.2.0
+message: "If you use ChemoCalib, please cite the following paper."
+authors:
+  - family-names: "Zhang"
+    given-names: "Xin"
+    orcid: "https://orcid.org/0000-0000-0000-0000"
+title: "ChemoCalib: Chemometrics-Calibrated Constraint-Based Metabolic Modeling via Multi-Block PLS"
+journal: "Bioinformatics"
+year: 2026
+doi: "10.5281/zenodo.XXXXXXX"
+url: "https://github.com/chemocalib/chemocalib"

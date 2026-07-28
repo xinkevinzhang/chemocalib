@@ -1,0 +1,45 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+*.egg-info/
+dist/
+build/
+*.eggs/
+.eggs/
+
+# Conda
+envs/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Jupyter
+.ipynb_checkpoints/
+
+# Data files (large)
+*.xls
+*.xlsx
+!data/example_*.csv
+
+# Output
+output/*.csv
+output/*.tex
+output/*.log
+!output/example_*.csv
+
+# LaTeX
+*.aux
+*.log
+*.out
+*.toc
+*.pdf
+*.synctex.gz
+
+# OS
+.DS_Store
+Thumbs.db

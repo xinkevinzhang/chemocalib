@@ -1,0 +1,42 @@
+# ============================================================
+# ChemoCalib v0.2.0 — Multi-Omics Metabolic Modeling
+# Author: Zhang Xin (xinzhang@cnu.edu.cn)
+# Department of Chemistry, Capital Normal University
+# ============================================================
+
+# -- Core numerical & scientific computing --
+numpy>=1.24.0
+scipy>=1.10.0
+pandas>=1.5.0
+scikit-learn>=1.2.0
+
+# -- Metabolic network modeling (COBRApy + solver) --
+cobra>=0.26.0
+optlang>=1.8.0
+
+# -- Visualization --
+matplotlib>=3.5.0
+seaborn>=0.12.0
+plotly>=5.10.0
+
+# -- CLI --
+click>=8.1.0
+rich>=13.0.0
+tqdm>=4.64.0
+
+# -- Jupyter --
+jupyter>=1.0.0
+ipywidgets>=8.0.0
+
+# -- Testing --
+pytest>=7.0.0
+pytest-cov>=4.0.0
+openpyxl>=3.0.0
+
+# -- Documentation --
+myst-parser>=2.0.0
+sphinx>=7.0.0
+furo>=2024.0.0
+
+# -- Code quality --
+ruff>=0.1.0
