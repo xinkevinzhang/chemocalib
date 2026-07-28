@@ -36,7 +36,8 @@ class FVAAnalyzer:
 
         if self.reactions_of_interest is None and self.model is not None:
             self.reactions_of_interest = [
-                r.id for r in self.model.reactions
+                r.id
+                for r in self.model.reactions
                 if r.id.startswith("EX_") or r.id.startswith("R")
             ]
 
@@ -62,24 +63,25 @@ class FVAAnalyzer:
             Keys: ``reaction_flux_ranges``, ``space_volume_proxy``,
             ``fva_baseline`` (if bounds provided), ``fva_constrained``.
         """
-        rxns = self.reactions_of_interest or [
-            r.id for r in self.model.reactions[:20]
-        ]
+        rxns = self.reactions_of_interest or [r.id for r in self.model.reactions[:20]]
 
         # Baseline FVA
         fva_baseline = self._fva_single(
-            rxns, constraints=None, fraction=fraction_of_optimum)
+            rxns, constraints=None, fraction=fraction_of_optimum
+        )
 
         result = {"fva_baseline": fva_baseline}
 
         if bounds is not None:
             fva_constrained = self._fva_single(
-                rxns, constraints=bounds, fraction=fraction_of_optimum)
+                rxns, constraints=bounds, fraction=fraction_of_optimum
+            )
             result["fva_constrained"] = fva_constrained
 
             # Compute flux space shrinkage
             result["space_shrinkage"] = self._compute_schrinkage(
-                fva_baseline, fva_constrained)
+                fva_baseline, fva_constrained
+            )
 
         return result
 
@@ -109,8 +111,10 @@ class FVAAnalyzer:
 
             try:
                 fva_result = flux_variability_analysis(
-                    m, reaction_list=[m.reactions.get_by_id(r) for r in reactions
-                                      if r in m.reactions],
+                    m,
+                    reaction_list=[
+                        m.reactions.get_by_id(r) for r in reactions if r in m.reactions
+                    ],
                     fraction_of_optimum=fraction,
                 )
             except Exception:
@@ -157,8 +161,7 @@ class FVAAnalyzer:
             "min_range_ratio": float(np.min(range_ratios)),
             "max_range_ratio": float(np.max(range_ratios)),
             "n_fully_constrained": int(np.sum(np.array(range_ratios) < 0.01)),
-            "space_shrinkage_percent": float(
-                (1 - np.mean(range_ratios)) * 100),
+            "space_shrinkage_percent": float((1 - np.mean(range_ratios)) * 100),
         }
 
     def gene_essentiality_validation(
@@ -194,8 +197,11 @@ class FVAAnalyzer:
             if gene in self.model.genes:
                 with self.model as m:
                     g = m.genes.get_by_id(gene)
-                    original_bounds = (g.reactions[0].lower_bound,
-                                     g.reactions[0].upper_bound) if g.reactions else (-1000, 1000)
+                    original_bounds = (
+                        (g.reactions[0].lower_bound, g.reactions[0].upper_bound)
+                        if g.reactions
+                        else (-1000, 1000)
+                    )
                     # Simulate knockout
                     for rxn in g.reactions:
                         rxn.lower_bound = 0
@@ -217,11 +223,10 @@ class FVAAnalyzer:
                 else:
                     continue
 
-        from sklearn.metrics import (
-            roc_auc_score, confusion_matrix, accuracy_score)
+        from sklearn.metrics import roc_auc_score, confusion_matrix, accuracy_score
 
         y_true = np.array(true_labels)
-        y_pred = np.array(essential_pred[:len(true_labels)])
+        y_pred = np.array(essential_pred[: len(true_labels)])
 
         tn, fp, fn, tp = confusion_matrix(y_true, y_pred, labels=[0, 1]).ravel()
 
@@ -233,8 +238,10 @@ class FVAAnalyzer:
             "TPR": float(tpr),
             "FPR": float(fpr),
             "accuracy": float(acc),
-            "TP": int(tp), "FP": int(fp),
-            "FN": int(fn), "TN": int(tn),
+            "TP": int(tp),
+            "FP": int(fp),
+            "FN": int(fn),
+            "TN": int(tn),
             "n_tested": int(len(true_labels)),
             "n_genes_total": int(len(gene_list)),
         }

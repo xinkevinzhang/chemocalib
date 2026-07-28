@@ -53,15 +53,14 @@ class FBASimulator:
         try:
             import cobra
         except ImportError:
-            raise ImportError(
-                "请先安装 COBRApy: pip install cobra"
-            )
+            raise ImportError("请先安装 COBRApy: pip install cobra")
 
         # COBRApy 0.31+ 去掉了 cobra.test 模块, 改用 BiGGModels 或创建最小模型
         if self.model_name in ("textbook", "ecoli_core", "e_coli_core"):
             try:
                 # 尝试从 BIGG 在线加载 e_coli_core
                 from cobra.io import BiGGModels
+
                 bigg = BiGGModels()
                 # 方案1: 直接用 read_sbml_model 从 cobra 包内数据加载
                 try:
@@ -70,7 +69,9 @@ class FBASimulator:
                 except Exception:
                     self.model = self._create_minimal_model()
                 self._loaded = True
-                print(f"[FBA] 已加载 E. coli core 模型 ({len(self.model.reactions)} reactions, {len(self.model.metabolites)} metabolites)")
+                print(
+                    f"[FBA] 已加载 E. coli core 模型 ({len(self.model.reactions)} reactions, {len(self.model.metabolites)} metabolites)"
+                )
                 return self.model
             except Exception as e:
                 print(f"[FBA] 在线加载失败, 创建最小模型: {e}")
@@ -81,18 +82,23 @@ class FBASimulator:
         elif self.model_name.lower() == "imm904":
             try:
                 from cobra.io import BiGGModels
+
                 bigg = BiGGModels()
                 bigg.get_sbml("iMM904")
                 self.model = cobra.io.read_sbml_model("iMM904.xml")
                 self._loaded = True
-                print(f"[FBA] 已加载 iMM904 酵母模型 ({len(self.model.reactions)} reactions)")
+                print(
+                    f"[FBA] 已加载 iMM904 酵母模型 ({len(self.model.reactions)} reactions)"
+                )
                 return self.model
             except Exception as e:
                 print(f"[FBA] 无法加载 iMM904 ({e}), 回退到最小模型")
                 return self.load_model()
 
         else:
-            raise ValueError(f"未知模型: {self.model_name}. 可选: textbook, ecoli_core, iMM904")
+            raise ValueError(
+                f"未知模型: {self.model_name}. 可选: textbook, ecoli_core, iMM904"
+            )
 
     @staticmethod
     def _create_minimal_model():
@@ -110,7 +116,18 @@ class FBASimulator:
 
         # === 代谢物 (构建: source → path → sink 模式) ===
         m = {}
-        for mid in ["glc_e", "glc", "g6p", "fdp", "pep", "pyr", "accoa", "oaa", "akg", "succ"]:
+        for mid in [
+            "glc_e",
+            "glc",
+            "g6p",
+            "fdp",
+            "pep",
+            "pyr",
+            "accoa",
+            "oaa",
+            "akg",
+            "succ",
+        ]:
             comp = "e" if mid.endswith("_e") else "c"
             m[mid] = Metabolite(mid, name=mid, compartment=comp)
 
@@ -126,45 +143,57 @@ class FBASimulator:
         GLCt.add_metabolites({m["glc_e"]: -1, m["glc"]: 1})
 
         # === 中心代谢路径 (每步 A → B, 没有辅因子! 参考 proven 模式) ===
-        R1 = Reaction("GLK")   # glc → G6P
+        R1 = Reaction("GLK")  # glc → G6P
         R1.add_metabolites({m["glc"]: -1, m["g6p"]: 1})
 
-        R2 = Reaction("PFK")   # G6P → FDP
+        R2 = Reaction("PFK")  # G6P → FDP
         R2.add_metabolites({m["g6p"]: -1, m["fdp"]: 1})
 
         R3 = Reaction("GLYC")  # FDP → 2 PEP
         R3.add_metabolites({m["fdp"]: -1, m["pep"]: 2})
 
-        R4 = Reaction("PYK")   # PEP → Pyr
+        R4 = Reaction("PYK")  # PEP → Pyr
         R4.add_metabolites({m["pep"]: -1, m["pyr"]: 1})
 
-        R5 = Reaction("PDH")   # Pyr → AcCoA
+        R5 = Reaction("PDH")  # Pyr → AcCoA
         R5.add_metabolites({m["pyr"]: -1, m["accoa"]: 1})
 
-        R6 = Reaction("CS")    # AcCoA + OAA → aKG
+        R6 = Reaction("CS")  # AcCoA + OAA → aKG
         R6.add_metabolites({m["accoa"]: -1, m["oaa"]: -1, m["akg"]: 1})
 
-        R7 = Reaction("TCA")   # aKG → OAA + succ (TCA 简化)
+        R7 = Reaction("TCA")  # aKG → OAA + succ (TCA 简化)
         R7.add_metabolites({m["akg"]: -1, m["oaa"]: 0.6, m["succ"]: 0.4})
 
         # === 回补: 产生 OAA 补缺口 ===
-        R8 = Reaction("PPC")   # PEP → OAA
+        R8 = Reaction("PPC")  # PEP → OAA
         R8.add_metabolites({m["pep"]: -1, m["oaa"]: 1})
 
         # === BIOMASS sink (纯消耗, 不产生任何代谢物!) ===
         BIOMASS = Reaction("BIOMASS")
-        BIOMASS.add_metabolites({
-            m["g6p"]: -0.2,   # 糖代谢分支
-            m["pep"]: -0.1,   # 氨基酸前体
-            m["pyr"]: -0.5,   # 主要碳骨架
-            m["accoa"]: -0.8, # 脂质前体
-            m["oaa"]: -0.3,   # TCA 中间体
-            m["akg"]: -0.2,   # 谷氨酸家族
-            m["succ"]: -0.1,  # 叶绿素/血红素
-        })
+        BIOMASS.add_metabolites(
+            {
+                m["g6p"]: -0.2,  # 糖代谢分支
+                m["pep"]: -0.1,  # 氨基酸前体
+                m["pyr"]: -0.5,  # 主要碳骨架
+                m["accoa"]: -0.8,  # 脂质前体
+                m["oaa"]: -0.3,  # TCA 中间体
+                m["akg"]: -0.2,  # 谷氨酸家族
+                m["succ"]: -0.1,  # 叶绿素/血红素
+            }
+        )
 
         all_rxns = [
-            EX_glc, GLCt, R1, R2, R3, R4, R5, R6, R7, R8, BIOMASS,
+            EX_glc,
+            GLCt,
+            R1,
+            R2,
+            R3,
+            R4,
+            R5,
+            R6,
+            R7,
+            R8,
+            BIOMASS,
         ]
         model.add_reactions(all_rxns)
 
@@ -194,7 +223,9 @@ class FBASimulator:
             "biomass_reaction": str(self.model.objective.expression),
         }
 
-    def single_gene_knockout_scan(self, gene_list: Optional[List[str]] = None) -> pd.DataFrame:
+    def single_gene_knockout_scan(
+        self, gene_list: Optional[List[str]] = None
+    ) -> pd.DataFrame:
         """
         单基因敲除扫描
 
@@ -224,19 +255,25 @@ class FBASimulator:
                     gene.knock_out()
                     sol = m.optimize()
                     growth = sol.objective_value if sol.status == "optimal" else 0.0
-                    results.append({
-                        "gene_id": gene_id,
-                        "growth_rate": growth,
-                        "growth_rate_ratio": growth / wt_growth if wt_growth > 0 else 0.0,
-                        "lethal": growth < 1e-6,
-                    })
+                    results.append(
+                        {
+                            "gene_id": gene_id,
+                            "growth_rate": growth,
+                            "growth_rate_ratio": (
+                                growth / wt_growth if wt_growth > 0 else 0.0
+                            ),
+                            "lethal": growth < 1e-6,
+                        }
+                    )
             except Exception:
-                results.append({
-                    "gene_id": gene_id,
-                    "growth_rate": np.nan,
-                    "growth_rate_ratio": np.nan,
-                    "lethal": False,
-                })
+                results.append(
+                    {
+                        "gene_id": gene_id,
+                        "growth_rate": np.nan,
+                        "growth_rate_ratio": np.nan,
+                        "lethal": False,
+                    }
+                )
 
         df = pd.DataFrame(results)
         return df.sort_values("growth_rate_ratio")
@@ -279,21 +316,25 @@ class FBASimulator:
                     growth_ratio = growth / wt_growth if wt_growth > 0 else 0.0
 
                     # 计算 epistasis: 双敲除 vs 单敲除乘积
-                    results.append({
+                    results.append(
+                        {
+                            "gene_a": ga,
+                            "gene_b": gb,
+                            "growth_double": growth,
+                            "growth_ratio": growth_ratio,
+                            "is_lethal": growth < 1e-6,
+                        }
+                    )
+            except Exception as e:
+                results.append(
+                    {
                         "gene_a": ga,
                         "gene_b": gb,
-                        "growth_double": growth,
-                        "growth_ratio": growth_ratio,
-                        "is_lethal": growth < 1e-6,
-                    })
-            except Exception as e:
-                results.append({
-                    "gene_a": ga,
-                    "gene_b": gb,
-                    "growth_double": np.nan,
-                    "growth_ratio": np.nan,
-                    "is_lethal": False,
-                })
+                        "growth_double": np.nan,
+                        "growth_ratio": np.nan,
+                        "is_lethal": False,
+                    }
+                )
 
             if verbose and (i + 1) % 50 == 0:
                 print(f"[FBA] Double KO progress: {i + 1}/{len(gene_pairs)}")
@@ -425,6 +466,7 @@ class FBASimulator:
 #  便捷函数: 预测代谢偏移
 # ============================================================
 
+
 def predict_metabolic_shift(
     simulator: FBASimulator,
     wt_fluxes: Dict[str, float],
@@ -464,13 +506,15 @@ def predict_metabolic_shift(
                     wt_f = wt_fluxes.get(rxn_id, 0.0)
                     ko_f = sol.fluxes.get(rxn_id, 0.0)
                     shift = ko_f - wt_f
-                    rows.append({
-                        "reaction": rxn_id,
-                        "wt_flux": wt_f,
-                        "ko_flux": ko_f,
-                        "shift": shift,
-                        "shift_pct": shift / (abs(wt_f) + 1e-8) * 100,
-                    })
+                    rows.append(
+                        {
+                            "reaction": rxn_id,
+                            "wt_flux": wt_f,
+                            "ko_flux": ko_f,
+                            "shift": shift,
+                            "shift_pct": shift / (abs(wt_f) + 1e-8) * 100,
+                        }
+                    )
     except Exception:
         pass
 

@@ -58,21 +58,27 @@ def generate_realistic_e_coli_data(
     rng = np.random.RandomState(seed)
 
     carbon_sources = [
-        "glucose", "acetate", "glycerol", "succinate",
-        "fumarate", "pyruvate", "xylose", "lactate",
+        "glucose",
+        "acetate",
+        "glycerol",
+        "succinate",
+        "fumarate",
+        "pyruvate",
+        "xylose",
+        "lactate",
     ][:n_conditions]
 
     # True latent factors for each condition
     # Factor 0: glycolytic activity, Factor 1: TCA activity, Factor 2: gluconeogenesis
     pathway_profiles = {
-        "glucose":    [2.0, 1.0, 0.2],
-        "acetate":    [0.3, 2.0, 1.5],
-        "glycerol":   [1.2, 1.5, 0.8],
-        "succinate":  [0.2, 1.8, 1.2],
-        "fumarate":   [0.3, 1.6, 1.0],
-        "pyruvate":   [1.5, 1.2, 0.5],
-        "xylose":     [1.0, 0.8, 1.0],
-        "lactate":    [0.8, 1.3, 0.7],
+        "glucose": [2.0, 1.0, 0.2],
+        "acetate": [0.3, 2.0, 1.5],
+        "glycerol": [1.2, 1.5, 0.8],
+        "succinate": [0.2, 1.8, 1.2],
+        "fumarate": [0.3, 1.6, 1.0],
+        "pyruvate": [1.5, 1.2, 0.5],
+        "xylose": [1.0, 0.8, 1.0],
+        "lactate": [0.8, 1.3, 0.7],
     }
 
     L = np.array([pathway_profiles[cs] for cs in carbon_sources])  # (n_cond, 3)
@@ -135,8 +141,14 @@ def generate_realistic_ecoli_ko_data(
     rng = np.random.RandomState(seed)
 
     strains = [
-        "WT", "deltapgi", "deltazwf", "deltapfkA",
-        "deltapykA", "delta_ppc", "delta_sdhA", "delta_ackA",
+        "WT",
+        "deltapgi",
+        "deltazwf",
+        "deltapfkA",
+        "deltapykA",
+        "delta_ppc",
+        "delta_sdhA",
+        "delta_ackA",
     ][:n_conditions]
 
     # Latent factors:
@@ -144,14 +156,14 @@ def generate_realistic_ecoli_ko_data(
     # Factor 1: TCA cycle activity (perturbed by sdhA KO)
     # Factor 2: overflow metabolism / acetate (perturbed by ackA KO)
     ko_profiles = {
-        "WT":          [1.0, 1.0, 0.3],
-        "deltapgi":    [0.1, 0.8, 0.5],   # pgi KO: glycolytic block
-        "deltazwf":    [0.9, 0.7, 0.4],   # zwf KO: PPP redirect
-        "deltapfkA":   [0.2, 0.9, 0.6],   # pfkA KO: glycolytic block
-        "deltapykA":   [0.4, 0.8, 0.7],   # pykA KO: pyruvate kinase
-        "delta_ppc":   [0.7, 0.3, 1.2],   # ppc KO: anaplerotic loss
-        "delta_sdhA":  [0.6, 0.1, 0.8],   # sdhA KO: TCA block
-        "delta_ackA":  [0.8, 0.6, 2.0],   # ackA KO: acetate overflow block
+        "WT": [1.0, 1.0, 0.3],
+        "deltapgi": [0.1, 0.8, 0.5],  # pgi KO: glycolytic block
+        "deltazwf": [0.9, 0.7, 0.4],  # zwf KO: PPP redirect
+        "deltapfkA": [0.2, 0.9, 0.6],  # pfkA KO: glycolytic block
+        "deltapykA": [0.4, 0.8, 0.7],  # pykA KO: pyruvate kinase
+        "delta_ppc": [0.7, 0.3, 1.2],  # ppc KO: anaplerotic loss
+        "delta_sdhA": [0.6, 0.1, 0.8],  # sdhA KO: TCA block
+        "delta_ackA": [0.8, 0.6, 2.0],  # ackA KO: acetate overflow block
     }
 
     L = np.array([ko_profiles[s] for s in strains])
@@ -212,9 +224,14 @@ def generate_realistic_yeast_stress_data(
     rng = np.random.RandomState(seed)
 
     conditions = [
-        "glucose_rich", "glucose_limited", "ethanol",
-        "heat_shock", "osmotic", "oxidative",
-        "nitrogen_lim", "pH_stress",
+        "glucose_rich",
+        "glucose_limited",
+        "ethanol",
+        "heat_shock",
+        "osmotic",
+        "oxidative",
+        "nitrogen_lim",
+        "pH_stress",
     ][:n_conditions]
 
     # Latent factors:
@@ -222,14 +239,14 @@ def generate_realistic_yeast_stress_data(
     # Factor 1: general stress response (ESR)
     # Factor 2: nitrogen/carbon scavenging
     stress_profiles = {
-        "glucose_rich":    [2.0, 0.2, 0.1],
+        "glucose_rich": [2.0, 0.2, 0.1],
         "glucose_limited": [0.3, 1.0, 0.8],
-        "ethanol":         [0.1, 1.5, 1.2],
-        "heat_shock":      [1.5, 1.8, 0.3],
-        "osmotic":         [1.2, 1.6, 0.5],
-        "oxidative":       [0.8, 2.0, 0.6],
-        "nitrogen_lim":    [0.2, 1.2, 2.0],
-        "pH_stress":       [1.0, 1.3, 0.9],
+        "ethanol": [0.1, 1.5, 1.2],
+        "heat_shock": [1.5, 1.8, 0.3],
+        "osmotic": [1.2, 1.6, 0.5],
+        "oxidative": [0.8, 2.0, 0.6],
+        "nitrogen_lim": [0.2, 1.2, 2.0],
+        "pH_stress": [1.0, 1.3, 0.9],
     }
 
     L = np.array([stress_profiles[c] for c in conditions])
@@ -287,8 +304,9 @@ def validate_multiblock_coherence(
 
     # Check sample consistency
     for i, X in enumerate(blocks):
-        assert X.shape[0] == report["n_samples"], \
-            f"Block {i} has {X.shape[0]} samples, expected {report['n_samples']}"
+        assert (
+            X.shape[0] == report["n_samples"]
+        ), f"Block {i} has {X.shape[0]} samples, expected {report['n_samples']}"
     assert y.shape[0] == report["n_samples"]
 
     # Floor: mean pairwise correlation across blocks
@@ -306,8 +324,10 @@ def validate_multiblock_coherence(
     report["y_cv"] = float(np.std(y) / (abs(np.mean(y)) + 1e-10))
 
     if verbose:
-        print(f"Multiblock data: {report['n_blocks']} blocks, "
-              f"{report['n_samples']} samples")
+        print(
+            f"Multiblock data: {report['n_blocks']} blocks, "
+            f"{report['n_samples']} samples"
+        )
         shapes = " × ".join([str(s[1]) for s in report["block_shapes"]])
         print(f"Features: {shapes}")
         print(f"Growth: {report['y_mean']:.3f} ± {report['y_std']:.3f}")

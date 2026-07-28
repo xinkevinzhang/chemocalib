@@ -111,7 +111,9 @@ class UncertaintySampler:
                 dists = cdist(all_residuals, selected_vecs, metric="euclidean")
                 u_diversity = np.min(dists, axis=1) / (np.max(dists) + 1e-8)
 
-            uncertainty = 0.5 * (u_residual / (u_residual.max() + 1e-8)) + 0.5 * u_diversity
+            uncertainty = (
+                0.5 * (u_residual / (u_residual.max() + 1e-8)) + 0.5 * u_diversity
+            )
 
         self._uncertainty_cache = uncertainty
         return uncertainty
@@ -199,8 +201,7 @@ class UncertaintySampler:
 
         # 用多样性策略从池中再选
         pool_residuals = [
-            R[pool_indices] if R.shape[0] > max(pool_indices) else R
-            for R in residuals
+            R[pool_indices] if R.shape[0] > max(pool_indices) else R for R in residuals
         ]
 
         selected, scores = self.select_samples(
@@ -214,13 +215,15 @@ class UncertaintySampler:
             pair_idx = pool_indices[idx] if idx < len(pool_indices) else idx
             if pair_idx < len(all_gene_pairs):
                 ga, gb = all_gene_pairs[pair_idx]
-                rows.append({
-                    "gene_a": ga,
-                    "gene_b": gb,
-                    "uncertainty": score,
-                    "rank": rank + 1,
-                    "reason": f"Top-{rank+1} by {self.strategy} uncertainty",
-                })
+                rows.append(
+                    {
+                        "gene_a": ga,
+                        "gene_b": gb,
+                        "uncertainty": score,
+                        "rank": rank + 1,
+                        "reason": f"Top-{rank+1} by {self.strategy} uncertainty",
+                    }
+                )
 
         return pd.DataFrame(rows)
 

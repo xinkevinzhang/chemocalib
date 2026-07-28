@@ -78,8 +78,10 @@ def permutation_test(
         "observed": float(observed),
         "p_value": p_value,
         "null_distribution": null_values.tolist(),
-        "ci95_null": [float(np.percentile(null_values, 2.5)),
-                       float(np.percentile(null_values, 97.5))],
+        "ci95_null": [
+            float(np.percentile(null_values, 2.5)),
+            float(np.percentile(null_values, 97.5)),
+        ],
         "n_permutations": n_permutations,
         "significant_at_005": p_value < 0.05,
     }
@@ -243,6 +245,7 @@ def _compute_metric(y_true: np.ndarray, y_pred: np.ndarray, metric: str) -> floa
         return float(1 - ss_res / (ss_tot + 1e-10))
     elif metric == "spearman_r":
         from scipy.stats import spearmanr
+
         r, _ = spearmanr(y_true, y_pred)
         return float(r)
     else:

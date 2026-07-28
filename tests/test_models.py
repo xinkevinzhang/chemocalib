@@ -9,11 +9,13 @@ class TestMultiBlockPLS:
 
     def test_import(self):
         from chemocalib.models.mbpls import MultiBlockPLS
+
         model = MultiBlockPLS(n_components=2)
         assert model.n_components == 2
 
     def test_fit_basic(self, small_blocks):
         from chemocalib.models.mbpls import MultiBlockPLS
+
         blocks, y = small_blocks
         model = MultiBlockPLS(n_components=2)
         model.fit(blocks, y)
@@ -22,6 +24,7 @@ class TestMultiBlockPLS:
 
     def test_fit_with_scale(self, small_blocks):
         from chemocalib.models.mbpls import MultiBlockPLS
+
         blocks, y = small_blocks
         model = MultiBlockPLS(n_components=2, scale=True)
         model.fit(blocks, y)
@@ -29,6 +32,7 @@ class TestMultiBlockPLS:
 
     def test_transform(self, small_blocks):
         from chemocalib.models.mbpls import MultiBlockPLS
+
         blocks, y = small_blocks
         model = MultiBlockPLS(n_components=2)
         model.fit(blocks, y)
@@ -38,6 +42,7 @@ class TestMultiBlockPLS:
 
     def test_block_importance(self, small_blocks):
         from chemocalib.models.mbpls import MultiBlockPLS
+
         blocks, y = small_blocks
         model = MultiBlockPLS(n_components=2)
         model.fit(blocks, y)
@@ -47,6 +52,7 @@ class TestMultiBlockPLS:
 
     def test_vip_scores(self, small_blocks):
         from chemocalib.models.mbpls import MultiBlockPLS
+
         blocks, y = small_blocks
         model = MultiBlockPLS(n_components=2)
         model.fit(blocks, y)
@@ -56,6 +62,7 @@ class TestMultiBlockPLS:
 
     def test_residual_space(self, small_blocks):
         from chemocalib.models.mbpls import MultiBlockPLS
+
         blocks, y = small_blocks
         model = MultiBlockPLS(n_components=2)
         model.fit(blocks, y)
@@ -66,6 +73,7 @@ class TestMultiBlockPLS:
 
     def test_generate_toy_data(self):
         from chemocalib.models.mbpls import generate_toy_multiblock_data
+
         result = generate_toy_multiblock_data(seed=0)
         # returns (blocks, y, feature_names) or (blocks, y)
         if len(result) == 3:
@@ -78,6 +86,7 @@ class TestMultiBlockPLS:
 
     def test_transform_prediction(self, small_blocks):
         from chemocalib.models.mbpls import MultiBlockPLS
+
         blocks, y = small_blocks
         model = MultiBlockPLS(n_components=2)
         model.fit(blocks, y)
@@ -86,6 +95,7 @@ class TestMultiBlockPLS:
 
     def test_large_n_components(self, small_blocks):
         from chemocalib.models.mbpls import MultiBlockPLS
+
         blocks, y = small_blocks
         model = MultiBlockPLS(n_components=1)
         model.fit(blocks, y)
@@ -93,6 +103,7 @@ class TestMultiBlockPLS:
 
     def test_single_block(self, small_blocks):
         from chemocalib.models.mbpls import MultiBlockPLS
+
         blocks, y = small_blocks
         single_block = [blocks[0]]
         model = MultiBlockPLS(n_components=1)
@@ -105,11 +116,13 @@ class TestMultiBlockAligner:
 
     def test_import_diablo(self):
         from chemocalib.models.diablo_like import MultiBlockAligner
+
         model = MultiBlockAligner(n_components=2)
         assert model.n_components == 2
 
     def test_fit_diablo(self, small_blocks):
         from chemocalib.models.diablo_like import MultiBlockAligner
+
         blocks, y = small_blocks
         model = MultiBlockAligner(n_components=2)
         model.fit(blocks, y)
@@ -118,6 +131,7 @@ class TestMultiBlockAligner:
 
     def test_summary_diablo(self, small_blocks):
         from chemocalib.models.diablo_like import MultiBlockAligner
+
         blocks, y = small_blocks
         model = MultiBlockAligner(n_components=2)
         model.fit(blocks, y)
@@ -127,6 +141,7 @@ class TestMultiBlockAligner:
 
     def test_default_kwargs(self, small_blocks):
         from chemocalib.models.diablo_like import MultiBlockAligner
+
         blocks, y = small_blocks
         model = MultiBlockAligner(n_components=2)
         model.fit(blocks, y)
@@ -134,6 +149,7 @@ class TestMultiBlockAligner:
 
     def test_sparse_kwargs(self, small_blocks):
         from chemocalib.models.diablo_like import MultiBlockAligner
+
         blocks, y = small_blocks
         model = MultiBlockAligner(n_components=2, keep_sparse=0.5)
         model.fit(blocks, y)
@@ -145,6 +161,7 @@ class TestMultiBlockPLSNamed:
 
     def test_block_names(self, small_blocks):
         from chemocalib.models.mbpls import MultiBlockPLS
+
         blocks, y = small_blocks
         names = ["met", "trx", "pro"]
         model = MultiBlockPLS(n_components=2, block_names=names)

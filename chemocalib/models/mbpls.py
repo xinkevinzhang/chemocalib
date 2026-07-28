@@ -57,13 +57,13 @@ class MultiBlockPLS:
         self.block_shapes = []
         self.scalers: List[StandardScaler] = []
         self.block_pls: List[PLSRegression] = []
-        self.block_scores: List[np.ndarray] = []     # 每块的得分 T_i
-        self.block_loadings: List[np.ndarray] = []   # 每块的加载 P_i
-        self.block_weights: List[np.ndarray] = []    # 每块的权重 W_i
+        self.block_scores: List[np.ndarray] = []  # 每块的得分 T_i
+        self.block_loadings: List[np.ndarray] = []  # 每块的加载 P_i
+        self.block_weights: List[np.ndarray] = []  # 每块的权重 W_i
         self.super_scores: Optional[np.ndarray] = None  # 超得分 T_T
         self.super_weights: Optional[np.ndarray] = None  # 超权重 w_T
         self.block_importance: Optional[np.ndarray] = None  # 块重要性
-        self.vip_scores: List[np.ndarray] = []       # 各块 VIP 分数
+        self.vip_scores: List[np.ndarray] = []  # 各块 VIP 分数
         self.y_loadings: Optional[np.ndarray] = None
         self._fitted = False
 
@@ -91,8 +91,12 @@ class MultiBlockPLS:
 
         # 校验
         for i, X in enumerate(blocks):
-            assert X.shape[0] == n_samples, f"Block {i} has {X.shape[0]} samples, expected {n_samples}"
-        assert y.shape[0] == n_samples, f"y has {y.shape[0]} samples, expected {n_samples}"
+            assert (
+                X.shape[0] == n_samples
+            ), f"Block {i} has {X.shape[0]} samples, expected {n_samples}"
+        assert (
+            y.shape[0] == n_samples
+        ), f"y has {y.shape[0]} samples, expected {n_samples}"
         y = y.reshape(-1, 1) if y.ndim == 1 else y
 
         # 设置块名
@@ -131,7 +135,9 @@ class MultiBlockPLS:
         # 拼合所有块的得分矩阵
         T_concat = np.hstack(self.block_scores)  # (n, k * n_components)
 
-        super_pls = PLSRegression(n_components=min(self.n_components, T_concat.shape[1]), scale=False)
+        super_pls = PLSRegression(
+            n_components=min(self.n_components, T_concat.shape[1]), scale=False
+        )
         super_pls.fit(T_concat, y)
         self.super_scores = super_pls.x_scores_
         self.super_weights = super_pls.x_weights_  # (k*n_components, super_n_comp)
@@ -183,7 +189,7 @@ class MultiBlockPLS:
                 t_a = T[:, a]
                 y_flat = y.flatten() if y.ndim > 1 else y
                 corr = np.corrcoef(t_a, y_flat)[0, 1]
-                ssy[a] = (corr ** 2) * np.sum(t_a ** 2)
+                ssy[a] = (corr**2) * np.sum(t_a**2)
 
             ssy_total = np.sum(ssy)
             if ssy_total == 0:
@@ -325,7 +331,11 @@ class MultiBlockPLS:
             "n_blocks": self.n_blocks,
             "block_names": self.block_names,
             "block_shapes": [(int(s[0]), int(s[1])) for s in self.block_shapes],
-            "block_importance": self.block_importance.tolist() if self.block_importance is not None else None,
+            "block_importance": (
+                self.block_importance.tolist()
+                if self.block_importance is not None
+                else None
+            ),
             "fitted": self._fitted,
         }
 
@@ -333,6 +343,7 @@ class MultiBlockPLS:
 # ============================================================
 #  便捷函数: 生成合成多组学数据 (用于轻薄本演示)
 # ============================================================
+
 
 def generate_toy_multiblock_data(
     n_samples: int = 100,

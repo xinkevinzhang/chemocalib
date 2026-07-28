@@ -8,6 +8,7 @@ Outputs: VIP distribution, per-pathway Spearman, reliability diagram.
 import numpy as np
 import pandas as pd
 import matplotlib
+
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 from matplotlib.patches import Patch
@@ -19,21 +20,27 @@ FIG_DIR = os.path.join(os.path.dirname(__file__), "..", "figures")
 RESULT_DIR = os.path.join(os.path.dirname(__file__), "..", "output")
 os.makedirs(FIG_DIR, exist_ok=True)
 
-plt.rcParams.update({
-    "font.family": "sans-serif",
-    "font.size": 11,
-    "axes.labelsize": 12,
-    "figure.dpi": 150,
-})
+plt.rcParams.update(
+    {
+        "font.family": "sans-serif",
+        "font.size": 11,
+        "axes.labelsize": 12,
+        "figure.dpi": 150,
+    }
+)
 
 
 def plot_benchmark_heatmap(benchmark_csv):
     """Heatmap of method x condition Spearman rho."""
     df = pd.read_csv(benchmark_csv)
     fig, ax = plt.subplots(figsize=(10, 4))
-    im = ax.imshow(df.set_index("Method").values, aspect="auto", cmap="RdYlBu_r", vmin=0, vmax=0.7)
+    im = ax.imshow(
+        df.set_index("Method").values, aspect="auto", cmap="RdYlBu_r", vmin=0, vmax=0.7
+    )
     ax.set_xticks(range(df.shape[1] - 1))
-    ax.set_xticklabels([c for c in df.columns if c != "Method"], rotation=45, ha="right")
+    ax.set_xticklabels(
+        [c for c in df.columns if c != "Method"], rotation=45, ha="right"
+    )
     ax.set_yticks(range(df.shape[0]))
     ax.set_yticklabels(df["Method"])
     plt.colorbar(im, ax=ax, label="Spearman rho")
@@ -49,8 +56,15 @@ def plot_method_comparison(summary_csv):
     fig, ax = plt.subplots(figsize=(8, 5))
     colors = ["gray" if m != "ChemoCalib" else "steelblue" for m in df["Method"]]
     x = np.arange(len(df))
-    bars = ax.bar(x, df["Spearman_rho_mean"], yerr=df["Spearman_rho_std"],
-                  capsize=5, color=colors, edgecolor="white", linewidth=0.5)
+    bars = ax.bar(
+        x,
+        df["Spearman_rho_mean"],
+        yerr=df["Spearman_rho_std"],
+        capsize=5,
+        color=colors,
+        edgecolor="white",
+        linewidth=0.5,
+    )
     ax.set_xticks(x)
     ax.set_xticklabels(df["Method"], rotation=30, ha="right")
     ax.set_ylabel("Spearman rho (mean +/- SD)")
@@ -58,8 +72,14 @@ def plot_method_comparison(summary_csv):
     ax.axhline(y=0.0, color="black", linewidth=0.5)
     # Add values on bars
     for bar, val in zip(bars, df["Spearman_rho_mean"]):
-        ax.text(bar.get_x() + bar.get_width() / 2, bar.get_height() + 0.01,
-                f"{val:.3f}", ha="center", va="bottom", fontsize=9)
+        ax.text(
+            bar.get_x() + bar.get_width() / 2,
+            bar.get_height() + 0.01,
+            f"{val:.3f}",
+            ha="center",
+            va="bottom",
+            fontsize=9,
+        )
     fig.tight_layout()
     fig.savefig(os.path.join(FIG_DIR, "method_comparison.pdf"), bbox_inches="tight")
     print(f"  Saved: figures/method_comparison.pdf")
@@ -79,9 +99,13 @@ def plot_reliability_diagram():
     fig, ax = plt.subplots(figsize=(6, 5))
     ax.plot(predicted_rho, observed_rho, "o-", color="steelblue", markersize=8)
     ax.plot([0, 0.6], [0, 0.6], "k--", alpha=0.3, label="Perfect calibration")
-    ax.fill_between(predicted_rho,
-                    observed_rho - 0.05, observed_rho + 0.05,
-                    alpha=0.2, color="steelblue")
+    ax.fill_between(
+        predicted_rho,
+        observed_rho - 0.05,
+        observed_rho + 0.05,
+        alpha=0.2,
+        color="steelblue",
+    )
     ax.set_xlabel("Predicted Rank (VIP decile)")
     ax.set_ylabel("Observed Spearman rho")
     ax.set_title("Reliability Diagram")

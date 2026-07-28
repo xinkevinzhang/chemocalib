@@ -65,8 +65,9 @@ def grid_search_components(
     for nc in component_range:
         fold_scores = []
         for repeat in range(n_repeats):
-            kf = KFold(n_splits=n_folds, shuffle=True,
-                       random_state=seed + repeat * 1000)
+            kf = KFold(
+                n_splits=n_folds, shuffle=True, random_state=seed + repeat * 1000
+            )
             for train_idx, test_idx in kf.split(np.arange(n_samples)):
                 blocks_train = [X[train_idx] for X in blocks]
                 blocks_test = [X[test_idx] for X in blocks]
@@ -80,7 +81,9 @@ def grid_search_components(
                     # Use first super-score component as proxy prediction
                     y_pred = y_pred[:, 0]
                     # Scale to match y_test range
-                    y_pred = y_pred * np.std(y_test) / (np.std(y_pred) + 1e-10) + np.mean(y_test)
+                    y_pred = y_pred * np.std(y_test) / (
+                        np.std(y_pred) + 1e-10
+                    ) + np.mean(y_test)
 
                     if metric == "r2":
                         ss_res = np.sum((y_test - y_pred) ** 2)
@@ -107,8 +110,9 @@ def grid_search_components(
             all_fold_scores[nc] = []
 
     # Find best
-    valid_means = {nc: r["mean"] for nc, r in cv_results.items()
-                   if not np.isnan(r["mean"])}
+    valid_means = {
+        nc: r["mean"] for nc, r in cv_results.items() if not np.isnan(r["mean"])
+    }
     if valid_means:
         best_nc = max(valid_means, key=valid_means.get)
         best_score = valid_means[best_nc]

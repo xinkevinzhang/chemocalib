@@ -106,7 +106,7 @@ class MultiBlockAligner:
         # 对得分协方差矩阵做 SVD
         cov_scores = scores_concat.T @ scores_concat
         U_cov, s_cov, _ = svd(cov_scores)
-        self.shared_structure = U_cov[:, :self.n_components]
+        self.shared_structure = U_cov[:, : self.n_components]
         self.singular_values = s_cov
 
         # 块间相关性
@@ -165,7 +165,7 @@ class MultiBlockAligner:
                 T = result
             scores.append(T)
         scores_concat = np.hstack(scores)
-        return scores_concat @ self.shared_structure[:, :self.n_components]
+        return scores_concat @ self.shared_structure[:, : self.n_components]
 
     def summary(self) -> str:
         """打印对齐摘要"""
@@ -176,7 +176,9 @@ class MultiBlockAligner:
         lines.append(f"  Singular values: {self.singular_values[:5].round(2)}")
         lines.append("\n  Block Correlation Matrix:")
         for i in range(self.n_blocks):
-            row = " ".join(f"{self.block_correlation[i, j]:.3f}" for j in range(self.n_blocks))
+            row = " ".join(
+                f"{self.block_correlation[i, j]:.3f}" for j in range(self.n_blocks)
+            )
             lines.append(f"    {row}")
         lines.append("\n  Selected Sparse Variables:")
         for i, (name, idx) in enumerate(zip(self.block_names, self.selected_vars)):

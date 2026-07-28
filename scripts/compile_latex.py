@@ -12,20 +12,18 @@ from io import BytesIO
 def compile_via_latexonline(tex_content: str, timeout: int = 120) -> bytes:
     """Use latexonline.cc API to compile LaTeX to PDF."""
     url = "https://latexonline.cc/compile"
-    files = {
-        "file": ("main.tex", tex_content.encode("utf-8"), "application/x-tex")
-    }
+    files = {"file": ("main.tex", tex_content.encode("utf-8"), "application/x-tex")}
     params = {"target": "main.tex"}
 
     resp = requests.post(url, files=files, params=params, timeout=timeout)
-    if resp.status_code == 200 and resp.headers.get("Content-Type", "").startswith("application/pdf"):
+    if resp.status_code == 200 and resp.headers.get("Content-Type", "").startswith(
+        "application/pdf"
+    ):
         return resp.content
 
     # Try text response for error message
     error_text = resp.text[:500] if resp.text else "No response body"
-    raise RuntimeError(
-        f"latexonline.cc returned {resp.status_code}: {error_text}"
-    )
+    raise RuntimeError(f"latexonline.cc returned {resp.status_code}: {error_text}")
 
 
 def compile_via_latex_to(tex_content: str, timeout: int = 120) -> bytes:
@@ -74,7 +72,9 @@ def compile_tex_to_pdf(tex_path: str, output_dir: str = None, max_retries: int =
                 print(f"  Trying {svc_name} (attempt {attempt + 1})...")
                 pdf_bytes = svc_fn(tex_content, timeout=180)
                 output_path.write_bytes(pdf_bytes)
-                print(f"  SUCCESS via {svc_name}: {output_path} ({len(pdf_bytes)} bytes)")
+                print(
+                    f"  SUCCESS via {svc_name}: {output_path} ({len(pdf_bytes)} bytes)"
+                )
                 return str(output_path)
             except Exception as e:
                 print(f"  {svc_name} failed: {e}")

@@ -230,9 +230,7 @@ class GlycolysisODE:
         self.km_g6p *= km_mod
         self.km_fbp *= km_mod
 
-        print(
-            f"[ODE] 已校准: Vmax × {modulation:.2f}, Km × {km_mod:.2f}"
-        )
+        print(f"[ODE] 已校准: Vmax × {modulation:.2f}, Km × {km_mod:.2f}")
 
     def extract_kcat_proxies(self) -> Dict[str, float]:
         """

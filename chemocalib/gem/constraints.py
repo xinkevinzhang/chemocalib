@@ -89,7 +89,11 @@ class LatentToConstraint:
 
         feature_to_rxn = {}
         for i, feat_idx in enumerate(top_indices):
-            feat_name = feature_names[feat_idx] if feat_idx < len(feature_names) else f"met_{feat_idx}"
+            feat_name = (
+                feature_names[feat_idx]
+                if feat_idx < len(feature_names)
+                else f"met_{feat_idx}"
+            )
             # 尝试从映射表查找
             if feat_name in self.metabolite_map:
                 rxn_id = self.metabolite_map[feat_name]
@@ -145,13 +149,27 @@ class LatentToConstraint:
 
             if self.scaling_mode == "soft":
                 # soft: 潜变量正值 → 增大通量上限, 负值 → 减小
-                ub = self.default_flux * (1.0 + np.clip(lv * scale_factor / 100.0, -0.9, 10.0))
-                lb = self.default_flux * (1.0 - np.clip(lv * scale_factor / 100.0, -0.9, 10.0)) * (-1.0)
+                ub = self.default_flux * (
+                    1.0 + np.clip(lv * scale_factor / 100.0, -0.9, 10.0)
+                )
+                lb = (
+                    self.default_flux
+                    * (1.0 - np.clip(lv * scale_factor / 100.0, -0.9, 10.0))
+                    * (-1.0)
+                )
                 bounds[rxn_id] = (max(self.min_bound, lb), min(self.max_bound, ub))
             elif self.scaling_mode == "hard":
                 # hard: 直接映射
-                ub = np.clip(self.default_flux + lv * scale_factor, self.min_bound, self.max_bound)
-                lb = np.clip(-self.default_flux + lv * scale_factor, self.min_bound, self.max_bound)
+                ub = np.clip(
+                    self.default_flux + lv * scale_factor,
+                    self.min_bound,
+                    self.max_bound,
+                )
+                lb = np.clip(
+                    -self.default_flux + lv * scale_factor,
+                    self.min_bound,
+                    self.max_bound,
+                )
                 if lb > ub:
                     lb, ub = ub, lb
                 bounds[rxn_id] = (lb, ub)
@@ -245,7 +263,9 @@ class LatentToConstraint:
         for i, (met_id, conc) in enumerate(metabolite_pool.items()):
             if i < len(latent_flat):
                 # 潜变量接近观测 → 高权重
-                weight = alpha * np.exp(-abs(latent_flat[i] - conc) / (abs(conc) + 1e-8))
+                weight = alpha * np.exp(
+                    -abs(latent_flat[i] - conc) / (abs(conc) + 1e-8)
+                )
                 rxn_id = f"EX_{met_id}"
                 weights[rxn_id] = float(weight)
 

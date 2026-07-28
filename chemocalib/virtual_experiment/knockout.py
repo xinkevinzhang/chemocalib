@@ -87,7 +87,11 @@ class DoubleKnockoutDesigner:
             if not vip_genes:
                 raise ValueError("vip_top 策略需要 vip_genes")
             vip_clean = [g for g in vip_genes if g not in exclude]
-            other = [g for g in (self.gene_pool or []) if g not in vip_clean and g not in exclude]
+            other = [
+                g
+                for g in (self.gene_pool or [])
+                if g not in vip_clean and g not in exclude
+            ]
 
             # VIP × VIP 组合
             vip_pairs = list(combinations(vip_clean, 2))
@@ -106,14 +110,19 @@ class DoubleKnockoutDesigner:
         elif self.design_strategy == "doe_filtered":
             # 使用 DoE 设计矩阵生成对
             from chemocalib.active_learning.doe import ExperimentDesigner
+
             pool = [g for g in (self.gene_pool or []) if g not in exclude]
             doe = ExperimentDesigner(
                 n_factors=min(n_pairs // 4, len(pool) // 2),
                 design_type="factorial",
             )
-            self.pairs = doe.design_knockout_pairs(pool, list(range(len(pool))), n_pairs)
+            self.pairs = doe.design_knockout_pairs(
+                pool, list(range(len(pool))), n_pairs
+            )
 
-        print(f"[DKO] 已生成 {len(self.pairs)} 组双敲除对 (策略: {self.design_strategy})")
+        print(
+            f"[DKO] 已生成 {len(self.pairs)} 组双敲除对 (策略: {self.design_strategy})"
+        )
         return self.pairs
 
     def run_virtual_experiments(

@@ -21,6 +21,7 @@ from scipy import stats as scipy_stats
 @dataclass
 class BenchmarkResult:
     """Container for method-level benchmark results."""
+
     method: str
     r2: float
     rmse: float
@@ -49,6 +50,7 @@ class EFluxBaseline:
     def _get_simulator(self):
         if self._sim is None and self.use_fba:
             from chemocalib.gem.fba import FBASimulator
+
             self._sim = FBASimulator(model_name="textbook")
             self._sim.load_model()
         return self._sim
@@ -77,14 +79,17 @@ class EFluxBaseline:
         return bounds
 
     def predict_growth_fba(
-        self, expression: np.ndarray, wt_growth: float,
+        self,
+        expression: np.ndarray,
+        wt_growth: float,
         wt_expression: Optional[np.ndarray] = None,
     ) -> float:
         """Predict growth via actual COBRApy FBA with E-Flux bounds."""
         sim = self._get_simulator()
         if sim is None:
             return self.predict_growth_from_expression(
-                expression, wt_growth, wt_expression or expression)
+                expression, wt_growth, wt_expression or expression
+            )
 
         # Compute fold-change bounds
         ref = wt_expression if wt_expression is not None else expression
@@ -104,7 +109,8 @@ class EFluxBaseline:
 
     @staticmethod
     def predict_growth_from_expression(
-        gene_expression: np.ndarray, wt_growth: float,
+        gene_expression: np.ndarray,
+        wt_growth: float,
         wt_expression: np.ndarray,
     ) -> float:
         """Simple E-Flux growth prediction using expression ratio."""
@@ -126,7 +132,8 @@ class MADEApproximation:
         self.threshold = fold_change_threshold
 
     def classify_reactions(
-        self, expr_fold_changes: np.ndarray,
+        self,
+        expr_fold_changes: np.ndarray,
     ) -> Dict[str, np.ndarray]:
         up = np.where(expr_fold_changes > self.threshold)[0]
         down = np.where(expr_fold_changes < -self.threshold)[0]
@@ -134,8 +141,11 @@ class MADEApproximation:
         return {"up": up, "down": down, "unchanged": unchanged}
 
     def compute_bounds(
-        self, expr_fold_changes: np.ndarray, base_bounds: np.ndarray,
-        up_scale: float = 2.0, down_scale: float = 0.5,
+        self,
+        expr_fold_changes: np.ndarray,
+        base_bounds: np.ndarray,
+        up_scale: float = 2.0,
+        down_scale: float = 0.5,
     ) -> np.ndarray:
         classification = self.classify_reactions(expr_fold_changes)
         adjusted = base_bounds.copy()
@@ -146,8 +156,10 @@ class MADEApproximation:
         return adjusted
 
     def predict_growth(
-        self, expr_fold_changes: np.ndarray,
-        wt_growth: float = 1.0, up_effect: float = 0.5,
+        self,
+        expr_fold_changes: np.ndarray,
+        wt_growth: float = 1.0,
+        up_effect: float = 0.5,
         down_effect: float = 0.3,
     ) -> float:
         cls = self.classify_reactions(expr_fold_changes)
@@ -172,7 +184,9 @@ class GECKOApproximation:
         self.sigma = sigma
 
     def compute_kcat_constrained_bounds(
-        self, protein_abundance: np.ndarray, molecular_weights: np.ndarray,
+        self,
+        protein_abundance: np.ndarray,
+        molecular_weights: np.ndarray,
         kcat_values: np.ndarray,
     ) -> np.ndarray:
         enzyme_conc = protein_abundance / (molecular_weights + 1e-10) * self.sigma
@@ -181,7 +195,9 @@ class GECKOApproximation:
         return vmax
 
     def predict_growth(
-        self, proteome: np.ndarray, wt_growth: float = 1.0,
+        self,
+        proteome: np.ndarray,
+        wt_growth: float = 1.0,
     ) -> float:
         protein_norm = proteome / (proteome.max() + 1e-10)
         return wt_growth * np.mean(protein_norm[:10])
@@ -215,9 +231,12 @@ class BenchmarkRunner:
         self.results: Dict[str, List[BenchmarkResult]] = {}
 
     def run(
-        self, blocks: List[np.ndarray], y: np.ndarray,
+        self,
+        blocks: List[np.ndarray],
+        y: np.ndarray,
         wt_expression: Optional[np.ndarray] = None,
-        wt_growth: float = 1.0, **kwargs,
+        wt_growth: float = 1.0,
+        **kwargs,
     ) -> Dict[str, Any]:
         rng = np.random.RandomState(self.seed)
         all_results: Dict[str, List[BenchmarkResult]] = {
@@ -235,6 +254,7 @@ class BenchmarkRunner:
         if self.use_fba:
             from chemocalib.gem.fba import FBASimulator
             from chemocalib.gem.constraints import LatentToConstraint
+
             fba_sim = FBASimulator(model_name="textbook")
             fba_sim.load_model()
             exchanges = fba_sim.get_exchange_reactions()
@@ -244,13 +264,14 @@ class BenchmarkRunner:
             # ChemoCalib
             if "chemocalib" in self.methods:
                 from chemocalib.models.mbpls import MultiBlockPLS
+
                 model = MultiBlockPLS(n_components=3)
                 model.fit(blocks, y)
 
                 if self.use_fba and fba_sim is not None:
                     mapper = LatentToConstraint(scaling_mode="soft")
                     names = [f"Met_{i}" for i in range(len(clean_ids))]
-                    mapper.build_feature_reaction_map(names, clean_ids[:len(names)])
+                    mapper.build_feature_reaction_map(names, clean_ids[: len(names)])
                     T = model.super_scores
                     y_hat = np.full(n_samples, wt_growth)
                     for i in range(n_samples):
@@ -263,8 +284,7 @@ class BenchmarkRunner:
                     y_hat = T[:, 0]
                     y_hat = y_hat * np.std(y) / (np.std(y_hat) + 1e-10) + np.mean(y)
 
-                all_results["chemocalib"].append(
-                    self._evaluate("chemocalib", y, y_hat))
+                all_results["chemocalib"].append(self._evaluate("chemocalib", y, y_hat))
 
             # E-Flux
             if "eflux" in self.methods:
@@ -273,12 +293,13 @@ class BenchmarkRunner:
                 for i in range(n_samples):
                     if self.use_fba and fba_sim is not None:
                         y_eflux[i] = eflux.predict_growth_fba(
-                            transcriptome[i], wt_growth, wt_expression)
+                            transcriptome[i], wt_growth, wt_expression
+                        )
                     else:
                         y_eflux[i] = eflux.predict_growth_from_expression(
-                            transcriptome[i], wt_growth, wt_expression)
-                all_results["eflux"].append(
-                    self._evaluate("eflux", y, y_eflux))
+                            transcriptome[i], wt_growth, wt_expression
+                        )
+                all_results["eflux"].append(self._evaluate("eflux", y, y_eflux))
 
             # MADE
             if "made" in self.methods:
@@ -287,8 +308,7 @@ class BenchmarkRunner:
                 fc = np.log2((transcriptome + 1) / (wt_expression + 1))
                 for i in range(n_samples):
                     y_made[i] = made.predict_growth(fc[i], wt_growth)
-                all_results["made"].append(
-                    self._evaluate("made", y, y_made))
+                all_results["made"].append(self._evaluate("made", y, y_made))
 
             # GECKO
             if "gecko" in self.methods:
@@ -296,14 +316,14 @@ class BenchmarkRunner:
                 y_gecko = np.full(n_samples, wt_growth)
                 for i in range(n_samples):
                     y_gecko[i] = gecko.predict_growth(proteome[i], wt_growth)
-                all_results["gecko"].append(
-                    self._evaluate("gecko", y, y_gecko))
+                all_results["gecko"].append(self._evaluate("gecko", y, y_gecko))
 
         self.results = all_results
         return self.summary()
 
-    def _evaluate(self, method: str, y_true: np.ndarray,
-                  y_pred: np.ndarray) -> BenchmarkResult:
+    def _evaluate(
+        self, method: str, y_true: np.ndarray, y_pred: np.ndarray
+    ) -> BenchmarkResult:
         y_true = y_true.ravel()
         y_pred = y_pred.ravel()
         ss_res = np.sum((y_true - y_pred) ** 2)
@@ -313,8 +333,13 @@ class BenchmarkRunner:
         mae = np.mean(np.abs(y_true - y_pred))
         spear, _ = scipy_stats.spearmanr(y_true, y_pred)
         return BenchmarkResult(
-            method=method, r2=r2, rmse=rmse, spearman_r=spear,
-            mae=mae, n_predictions=len(y_true))
+            method=method,
+            r2=r2,
+            rmse=rmse,
+            spearman_r=spear,
+            mae=mae,
+            n_predictions=len(y_true),
+        )
 
     def summary(self) -> Dict[str, Any]:
         """Aggregate benchmark results across repeats."""
@@ -343,7 +368,7 @@ class BenchmarkRunner:
 
     def statistical_tests(self) -> pd.DataFrame:
         """Pairwise statistical comparisons between methods.
-        
+
         Uses paired t-test with Bonferroni correction.
         """
         methods_present = list(self.results.keys())
@@ -358,12 +383,15 @@ class BenchmarkRunner:
                 rmses_2 = [r.rmse for r in self.results[m2]]
                 if len(rmses_1) == len(rmses_2) and len(rmses_1) > 1:
                     t_stat, p_val = scipy_stats.ttest_rel(rmses_1, rmses_2)
-                    rows.append({
-                        "Method A": m1, "Method B": m2,
-                        "t_statistic": round(t_stat, 3),
-                        "p_value": f"{p_val:.4e}",
-                        "significant (p<0.05)": "Yes" if p_val < 0.05 else "No",
-                    })
+                    rows.append(
+                        {
+                            "Method A": m1,
+                            "Method B": m2,
+                            "t_statistic": round(t_stat, 3),
+                            "p_value": f"{p_val:.4e}",
+                            "significant (p<0.05)": "Yes" if p_val < 0.05 else "No",
+                        }
+                    )
         return pd.DataFrame(rows)
 
     def comparison_table(self) -> pd.DataFrame:
@@ -371,13 +399,15 @@ class BenchmarkRunner:
         summary = self.summary()
         rows = []
         for method, metrics in summary.items():
-            rows.append({
-                "Method": method,
-                "R² (mean)": f"{metrics['r2_mean']:.3f}",
-                "R² (std)": f"{metrics['r2_std']:.3f}",
-                "RMSE (mean)": f"{metrics['rmse_mean']:.3f}",
-                "RMSE (std)": f"{metrics['rmse_std']:.3f}",
-                "Spearman r": f"{metrics['spearman_r_mean']:.3f}",
-                "MAE (mean)": f"{metrics['mae_mean']:.3f}",
-            })
+            rows.append(
+                {
+                    "Method": method,
+                    "R² (mean)": f"{metrics['r2_mean']:.3f}",
+                    "R² (std)": f"{metrics['r2_std']:.3f}",
+                    "RMSE (mean)": f"{metrics['rmse_mean']:.3f}",
+                    "RMSE (std)": f"{metrics['rmse_std']:.3f}",
+                    "Spearman r": f"{metrics['spearman_r_mean']:.3f}",
+                    "MAE (mean)": f"{metrics['mae_mean']:.3f}",
+                }
+            )
         return pd.DataFrame(rows)

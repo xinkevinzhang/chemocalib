@@ -12,6 +12,7 @@ Output: per-condition Spearman/Pearson/NRMSE metrics for all methods.
 import numpy as np
 import pandas as pd
 import sys, os
+
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 
 from chemocalib.models.mbpls import MultiBlockPLS
@@ -24,7 +25,9 @@ from chemocalib.data.loader import load_kim2016_dataset
 def main():
     """Run full multi-block workload on Kim 2016 dataset."""
     MODELS_DIR = os.path.join(os.path.dirname(__file__), "..", "models")
-    DATA_FILE = os.path.join(os.path.dirname(__file__), "..", "data", "kim2016_S2_Dataset.xls")
+    DATA_FILE = os.path.join(
+        os.path.dirname(__file__), "..", "data", "kim2016_S2_Dataset.xls"
+    )
     OUTPUT_DIR = os.path.join(os.path.dirname(__file__), "..", "output")
 
     os.makedirs(OUTPUT_DIR, exist_ok=True)
@@ -40,8 +43,13 @@ def main():
         return
 
     data = load_kim2016_dataset(DATA_FILE)
-    for k in ["transcriptome", "flux_measurements", "n_conditions",
-              "n_reactions", "condition_names"]:
+    for k in [
+        "transcriptome",
+        "flux_measurements",
+        "n_conditions",
+        "n_reactions",
+        "condition_names",
+    ]:
         if k in data:
             val = data[k]
             if hasattr(val, "shape"):
@@ -106,18 +114,28 @@ def main():
 
     summary_rows = []
     for method, res in all_methods.items():
-        rho_vals = [v["spearman"] for v in res.values() if not np.isnan(v.get("spearman", np.nan))]
-        r_vals = [v["pearson"] for v in res.values() if not np.isnan(v.get("pearson", np.nan))]
-        nrmse_vals = [v["nrmse"] for v in res.values() if not np.isnan(v.get("nrmse", np.nan))]
+        rho_vals = [
+            v["spearman"]
+            for v in res.values()
+            if not np.isnan(v.get("spearman", np.nan))
+        ]
+        r_vals = [
+            v["pearson"] for v in res.values() if not np.isnan(v.get("pearson", np.nan))
+        ]
+        nrmse_vals = [
+            v["nrmse"] for v in res.values() if not np.isnan(v.get("nrmse", np.nan))
+        ]
 
-        summary_rows.append({
-            "Method": method,
-            "Spearman_rho_mean": np.mean(rho_vals) if rho_vals else np.nan,
-            "Spearman_rho_std": np.std(rho_vals) if len(rho_vals) > 1 else 0,
-            "Pearson_r_mean": np.mean(r_vals) if r_vals else np.nan,
-            "NRMSE_mean": np.mean(nrmse_vals) if nrmse_vals else np.nan,
-            "N_conditions": len(rho_vals),
-        })
+        summary_rows.append(
+            {
+                "Method": method,
+                "Spearman_rho_mean": np.mean(rho_vals) if rho_vals else np.nan,
+                "Spearman_rho_std": np.std(rho_vals) if len(rho_vals) > 1 else 0,
+                "Pearson_r_mean": np.mean(r_vals) if r_vals else np.nan,
+                "NRMSE_mean": np.mean(nrmse_vals) if nrmse_vals else np.nan,
+                "N_conditions": len(rho_vals),
+            }
+        )
 
     summary = pd.DataFrame(summary_rows)
     print(summary.to_string(index=False, float_format=lambda x: f"{x:.3f}"))

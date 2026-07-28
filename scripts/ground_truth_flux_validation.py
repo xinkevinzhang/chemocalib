@@ -34,7 +34,9 @@ from chemocalib.data.loader import generate_realistic_e_coli_data
 from chemocalib.data.fluxome import (
     load_ecoli_combined_fluxome,
     load_yeast_branching_ratios,
-    REACTION_NAMES, N_REACTIONS, subset_fluxes,
+    REACTION_NAMES,
+    N_REACTIONS,
+    subset_fluxes,
 )
 
 
@@ -42,16 +44,18 @@ from chemocalib.data.fluxome import (
 # Flux prediction interface
 # ──────────────────────────────────────────────────────────────────────
 
+
 def predict_fluxes_chemocalib(
-    blocks, growth, model_name="textbook",
-    n_components=3, seed=42
+    blocks, growth, model_name="textbook", n_components=3, seed=42
 ) -> np.ndarray:
     """Predict fluxes using the ChemoCalib MB-PLS + FBA pipeline.
 
     Returns:
         predicted_fluxes : np.ndarray (n_conditions, n_reactions)
     """
-    mbpls = MultiBlockPLS(n_components=min(n_components, min(b.shape[1] for b in blocks)))
+    mbpls = MultiBlockPLS(
+        n_components=min(n_components, min(b.shape[1] for b in blocks))
+    )
     mbpls.fit(blocks, growth)
 
     sim = FBASimulator(model_name=model_name)
@@ -63,7 +67,7 @@ def predict_fluxes_chemocalib(
 
     mapper = LatentToConstraint(scaling_mode="soft")
     names = [f"Met_{i}" for i in range(min(len(clean_ids), 31))]
-    mapper.build_feature_reaction_map(names, clean_ids[:len(names)])
+    mapper.build_feature_reaction_map(names, clean_ids[: len(names)])
 
     super_scores = mbpls.super_scores
     n_cond = super_scores.shape[0]
@@ -165,6 +169,7 @@ def predict_fluxes_gecko(blocks, growth, model_name="textbook") -> np.ndarray:
 # Evaluation metrics
 # ──────────────────────────────────────────────────────────────────────
 
+
 def compute_flux_metrics(
     predicted: np.ndarray,
     measured: np.ndarray,
@@ -209,23 +214,27 @@ def compute_flux_metrics(
         pj = predicted[:, j][predicted[:, j] > eps]
         mj = measured[:, j][measured[:, j] > eps]
         if len(pj) >= 3 and len(set(pj)) > 1:
-            rho_j, _ = stats.spearmanr(pj[:len(mj)], mj[:len(pj)])
+            rho_j, _ = stats.spearmanr(pj[: len(mj)], mj[: len(pj)])
             per_rxn_rho.append(rho_j)
 
     mean_rxn_rho = np.mean(per_rxn_rho) if per_rxn_rho else np.nan
 
     # Per-pathway breakdown (cap at n_rxns)
     n_rxn = measured.shape[1]
-    glycolysis_idx = [i for i in range(0, 9) if i < n_rxn]        # PGI .. PYK
-    ppp_idx = [i for i in range(9, 17) if i < n_rxn]              # G6PDH .. TALA
-    tca_idx = [i for i in range(17, 25) if i < n_rxn]             # CS .. MDH
-    anaplerotic_idx = [i for i in range(25, 31) if i < n_rxn]     # PPC .. ADH
+    glycolysis_idx = [i for i in range(0, 9) if i < n_rxn]  # PGI .. PYK
+    ppp_idx = [i for i in range(9, 17) if i < n_rxn]  # G6PDH .. TALA
+    tca_idx = [i for i in range(17, 25) if i < n_rxn]  # CS .. MDH
+    anaplerotic_idx = [i for i in range(25, 31) if i < n_rxn]  # PPC .. ADH
 
     pathways = {}
-    if glycolysis_idx: pathways["Glycolysis"] = glycolysis_idx
-    if ppp_idx: pathways["PPP"] = ppp_idx
-    if tca_idx: pathways["TCA"] = tca_idx
-    if anaplerotic_idx: pathways["Anaplerotic/Ferm."] = anaplerotic_idx
+    if glycolysis_idx:
+        pathways["Glycolysis"] = glycolysis_idx
+    if ppp_idx:
+        pathways["PPP"] = ppp_idx
+    if tca_idx:
+        pathways["TCA"] = tca_idx
+    if anaplerotic_idx:
+        pathways["Anaplerotic/Ferm."] = anaplerotic_idx
 
     pathway_metrics = {}
     for pname, idxs in pathways.items():
@@ -254,6 +263,7 @@ def compute_flux_metrics(
 # ──────────────────────────────────────────────────────────────────────
 # Yeast branching ratio validation
 # ──────────────────────────────────────────────────────────────────────
+
 
 def compute_yeast_branching_validation(
     blocks, growth, model_name="textbook", seed=42
@@ -300,22 +310,27 @@ def compute_yeast_branching_validation(
             continue
 
         # Predicted ratio: flux_A / (flux_A + flux_B)
-        for method_name, flux_mat in [("ChemoCalib", flux_pred), ("E-Flux", flux_eflux)]:
+        for method_name, flux_mat in [
+            ("ChemoCalib", flux_pred),
+            ("E-Flux", flux_eflux),
+        ]:
             if ia < flux_mat.shape[1] and ib < flux_mat.shape[1]:
                 fa = flux_mat[:, ia]
                 fb = flux_mat[:, ib]
                 ratio_pred = np.mean(fa / (fa + fb + 1e-8))
-                branch_results.append({
-                    "branch_point": bp_name,
-                    "rxn_a": rxn_a,
-                    "rxn_b": rxn_b,
-                    "method": method_name,
-                    "predicted_ratio": ratio_pred,
-                })
+                branch_results.append(
+                    {
+                        "branch_point": bp_name,
+                        "rxn_a": rxn_a,
+                        "rxn_b": rxn_b,
+                        "method": method_name,
+                        "predicted_ratio": ratio_pred,
+                    }
+                )
 
     # Consensus values (mean from literature)
     consensus = {
-        "G6P => PPP vs Glycolysis": 0.18,       # 18% to PPP
+        "G6P => PPP vs Glycolysis": 0.18,  # 18% to PPP
         "PEP => Pyruvate vs OAA (anaplerotic)": 0.25,  # 25% to OAA
     }
 
@@ -354,6 +369,7 @@ def compute_yeast_branching_validation(
 # ──────────────────────────────────────────────────────────────────────
 # Main benchmark
 # ──────────────────────────────────────────────────────────────────────
+
 
 def run_ecoli_ground_truth_benchmark(
     model_name="textbook",
@@ -409,24 +425,28 @@ def run_ecoli_ground_truth_benchmark(
         )
 
         print(f"  RMSE={metrics['rmse']:.2f}, NRMSE={metrics['nrmse']:.3f}")
-        print(f"  Spearman rho={metrics['spearman_rho']:.3f} (p={metrics['spearman_p']:.2e})")
+        print(
+            f"  Spearman rho={metrics['spearman_rho']:.3f} (p={metrics['spearman_p']:.2e})"
+        )
         print(f"  Pearson r={metrics['pearson_r']:.3f}")
         print(f"  Per-rxn mean Spearman={metrics['mean_per_rxn_spearman']:.3f}")
 
         for pname, pm in metrics["pathway"].items():
             print(f"    {pname}: rho={pm['rho']:.3f}, RMSE={pm['rmse']:.1f}")
 
-        results.append({
-            "Method": method_name,
-            "RMSE": round(metrics["rmse"], 2),
-            "NRMSE": round(metrics["nrmse"], 4),
-            "MAE": round(metrics["mae"], 2),
-            "Spearman_rho": round(metrics["spearman_rho"], 3),
-            "Spearman_p": f"{metrics['spearman_p']:.2e}",
-            "Pearson_r": round(metrics["pearson_r"], 3),
-            "Mean_per_rxn_Spearman": round(metrics["mean_per_rxn_spearman"], 3),
-            "N_rxns_evaluated": metrics["n_rxns_evaluated"],
-        })
+        results.append(
+            {
+                "Method": method_name,
+                "RMSE": round(metrics["rmse"], 2),
+                "NRMSE": round(metrics["nrmse"], 4),
+                "MAE": round(metrics["mae"], 2),
+                "Spearman_rho": round(metrics["spearman_rho"], 3),
+                "Spearman_p": f"{metrics['spearman_p']:.2e}",
+                "Pearson_r": round(metrics["pearson_r"], 3),
+                "Mean_per_rxn_Spearman": round(metrics["mean_per_rxn_spearman"], 3),
+                "N_rxns_evaluated": metrics["n_rxns_evaluated"],
+            }
+        )
 
     df = pd.DataFrame(results)
     print(f"\n{'='*60}")
@@ -466,6 +486,7 @@ def run_yeast_branching_validation(model_name="textbook", seed=42) -> Dict:
 # ──────────────────────────────────────────────────────────────────────
 # CLI
 # ──────────────────────────────────────────────────────────────────────
+
 
 def main(args):
     # E. coli ground truth

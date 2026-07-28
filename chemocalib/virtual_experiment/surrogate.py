@@ -55,7 +55,7 @@ class SurrogateModel:
         growth_rates : np.ndarray (n_train,)
             对应样本的生长率 (来自 FBA 或观测)
         """
-        X = latent_scores[:, :self.n_components]
+        X = latent_scores[:, : self.n_components]
         y = growth_rates.flatten()
 
         # 最小二乘
@@ -71,7 +71,7 @@ class SurrogateModel:
     def predict(self, latent_scores: np.ndarray) -> np.ndarray:
         """预测生长率"""
         assert self._fitted, "模型未训练"
-        X = latent_scores[:, :self.n_components]
+        X = latent_scores[:, : self.n_components]
         return X @ self.beta + self.intercept
 
     def predict_with_uncertainty(
@@ -143,7 +143,9 @@ class SurrogateModel:
             "n_samples": len(true),
         }
 
-    def get_residuals(self, latent_scores: np.ndarray, true_growth: np.ndarray) -> np.ndarray:
+    def get_residuals(
+        self, latent_scores: np.ndarray, true_growth: np.ndarray
+    ) -> np.ndarray:
         """计算预测残差"""
         pred = self.predict(latent_scores)
         return true_growth.flatten() - pred
@@ -176,7 +178,9 @@ class SurrogateModel:
 
         return {
             "mbpls_chemometric": compute_metrics(mbpls_predictions, true_growth),
-            "transcript_only_baseline": compute_metrics(transcript_only_predictions, true_growth),
+            "transcript_only_baseline": compute_metrics(
+                transcript_only_predictions, true_growth
+            ),
         }
 
     def summary(self) -> str:

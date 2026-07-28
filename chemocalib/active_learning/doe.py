@@ -87,9 +87,7 @@ class ExperimentDesigner:
         indices = self.rng.choice(len(full), n_half, replace=False)
         return full[indices]
 
-    def _central_composite_design(
-        self, n_center: int, alpha: float
-    ) -> np.ndarray:
+    def _central_composite_design(self, n_center: int, alpha: float) -> np.ndarray:
         """中心复合设计 (CCD)"""
         # 因子部分
         factorial = np.array(list(product([-1, 1], repeat=self.n_factors)))
@@ -128,6 +126,7 @@ class ExperimentDesigner:
     def to_dataframe(self, design: np.ndarray, factor_names=None) -> "pd.DataFrame":
         """Convert design matrix to labelled DataFrame."""
         import pandas as pd
+
         if factor_names is None:
             factor_names = [f"X{i+1}" for i in range(design.shape[1])]
         return pd.DataFrame(design, columns=factor_names)
@@ -149,7 +148,9 @@ class ExperimentDesigner:
             best_det = -1
             best_idx = -1
             for i in range(n_candidates):
-                if i in [np.where((candidates == s).all(axis=1))[0][0] for s in selected]:
+                if i in [
+                    np.where((candidates == s).all(axis=1))[0][0] for s in selected
+                ]:
                     continue
                 trial = np.vstack(selected + [candidates[i]])
                 det = np.linalg.det(trial.T @ trial)
@@ -194,8 +195,16 @@ class ExperimentDesigner:
             for i in range(self.n_factors - 1):
                 for j in range(i + 1, self.n_factors):
                     if i < len(factor_indices) and j < len(factor_indices):
-                        ga = gene_pool[factor_indices[i]] if factor_indices[i] < len(gene_pool) else f"G{factor_indices[i]}"
-                        gb = gene_pool[factor_indices[j]] if factor_indices[j] < len(gene_pool) else f"G{factor_indices[j]}"
+                        ga = (
+                            gene_pool[factor_indices[i]]
+                            if factor_indices[i] < len(gene_pool)
+                            else f"G{factor_indices[i]}"
+                        )
+                        gb = (
+                            gene_pool[factor_indices[j]]
+                            if factor_indices[j] < len(gene_pool)
+                            else f"G{factor_indices[j]}"
+                        )
                         # 按水平决定是否敲除
                         if row[i] != 0 and row[j] != 0:
                             pairs.append((ga, gb))

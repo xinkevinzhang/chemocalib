@@ -8,11 +8,13 @@ class TestDoubleKnockoutDesigner:
 
     def test_import(self):
         from chemocalib.virtual_experiment.knockout import DoubleKnockoutDesigner
+
         designer = DoubleKnockoutDesigner(gene_pool=["g1", "g2", "g3"])
         assert len(designer.gene_pool) == 3
 
     def test_generate_pairs(self):
         from chemocalib.virtual_experiment.knockout import DoubleKnockoutDesigner
+
         genes = [f"gene_{i}" for i in range(10)]
         designer = DoubleKnockoutDesigner(gene_pool=genes)
         pairs = designer.generate_pairs(n_pairs=20)
@@ -23,6 +25,7 @@ class TestDoubleKnockoutDesigner:
 
     def test_generate_pairs_over_max(self):
         from chemocalib.virtual_experiment.knockout import DoubleKnockoutDesigner
+
         genes = ["A", "B", "C"]
         designer = DoubleKnockoutDesigner(gene_pool=genes)
         pairs = designer.generate_pairs(n_pairs=100)
@@ -31,6 +34,7 @@ class TestDoubleKnockoutDesigner:
 
     def test_generate_single_knockouts(self):
         from chemocalib.virtual_experiment.knockout import DoubleKnockoutDesigner
+
         genes = [f"g{i}" for i in range(5)]
         designer = DoubleKnockoutDesigner(gene_pool=genes)
         singles = designer.generate_single_knockouts()
@@ -38,6 +42,7 @@ class TestDoubleKnockoutDesigner:
 
     def test_results_attribute(self):
         from chemocalib.virtual_experiment.knockout import DoubleKnockoutDesigner
+
         genes = [f"g{i}" for i in range(6)]
         designer = DoubleKnockoutDesigner(gene_pool=genes)
         designer.generate_pairs(n_pairs=10)
@@ -51,11 +56,13 @@ class TestSurrogateModel:
 
     def test_import(self):
         from chemocalib.virtual_experiment.surrogate import SurrogateModel
+
         sm = SurrogateModel()
         assert sm is not None
 
     def test_fit(self):
         from chemocalib.virtual_experiment.surrogate import SurrogateModel
+
         np.random.seed(42)
         X = np.random.randn(50, 5)
         y = np.random.randn(50)
@@ -66,6 +73,7 @@ class TestSurrogateModel:
 
     def test_predict(self):
         from chemocalib.virtual_experiment.surrogate import SurrogateModel
+
         np.random.seed(42)
         X = np.random.randn(50, 5)
         y = np.random.randn(50)
@@ -77,6 +85,7 @@ class TestSurrogateModel:
 
     def test_evaluate(self):
         from chemocalib.virtual_experiment.surrogate import SurrogateModel
+
         np.random.seed(42)
         X = np.random.randn(100, 5)
         y = np.random.randn(100)
@@ -88,6 +97,7 @@ class TestSurrogateModel:
 
     def test_predict_with_uncertainty(self):
         from chemocalib.virtual_experiment.surrogate import SurrogateModel
+
         np.random.seed(42)
         X = np.random.randn(80, 5)
         y = np.random.randn(80)
@@ -102,6 +112,7 @@ class TestSurrogateModel:
 
     def test_summary(self):
         from chemocalib.virtual_experiment.surrogate import SurrogateModel
+
         np.random.seed(42)
         X = np.random.randn(30, 5)
         y = np.random.randn(30)
@@ -113,6 +124,7 @@ class TestSurrogateModel:
 
     def test_fit_returns_self(self):
         from chemocalib.virtual_experiment.surrogate import SurrogateModel
+
         np.random.seed(42)
         X = np.random.randn(60, 5)
         y = np.random.randn(60)

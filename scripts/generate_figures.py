@@ -21,6 +21,7 @@ import sys
 import argparse
 import numpy as np
 import matplotlib
+
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 import matplotlib.gridspec as gridspec
@@ -30,15 +31,17 @@ import seaborn as sns
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 
 sns.set_style("whitegrid")
-plt.rcParams.update({
-    "font.size": 11,
-    "axes.titlesize": 13,
-    "axes.labelsize": 12,
-    "figure.dpi": 150,
-    "savefig.dpi": 300,
-    "savefig.bbox": "tight",
-    "font.family": "sans-serif",
-})
+plt.rcParams.update(
+    {
+        "font.size": 11,
+        "axes.titlesize": 13,
+        "axes.labelsize": 12,
+        "figure.dpi": 150,
+        "savefig.dpi": 300,
+        "savefig.bbox": "tight",
+        "font.family": "sans-serif",
+    }
+)
 COLORS = ["#C44E52", "#4C72B0", "#55A868", "#8172B2", "#CCB974", "#64B5CD"]
 
 
@@ -51,34 +54,97 @@ def fig1_pipeline_schematic(out_dir):
     ax.set_title("ChemoCalib Pipeline", fontsize=16, fontweight="bold", pad=20)
 
     boxes = [
-        (0.5, 3, 2.2, 2.0, "Multi-Omics Data\n(metabolome + transcriptome\n + proteome)", COLORS[0]),
-        (3.5, 3, 2.2, 2.0, "MB-PLS / DIABLO\nLatent Decomposition\n→ Super Scores", COLORS[1]),
-        (6.5, 3, 2.2, 2.0, "Latent → Constraint\n(VIP-weighted\nreaction bounds)", COLORS[2]),
-        (9.5, 3, 2.2, 2.0, "Constrained FBA\n(GLPK solver)\n→ Flux distribution", COLORS[3]),
+        (
+            0.5,
+            3,
+            2.2,
+            2.0,
+            "Multi-Omics Data\n(metabolome + transcriptome\n + proteome)",
+            COLORS[0],
+        ),
+        (
+            3.5,
+            3,
+            2.2,
+            2.0,
+            "MB-PLS / DIABLO\nLatent Decomposition\n→ Super Scores",
+            COLORS[1],
+        ),
+        (
+            6.5,
+            3,
+            2.2,
+            2.0,
+            "Latent → Constraint\n(VIP-weighted\nreaction bounds)",
+            COLORS[2],
+        ),
+        (
+            9.5,
+            3,
+            2.2,
+            2.0,
+            "Constrained FBA\n(GLPK solver)\n→ Flux distribution",
+            COLORS[3],
+        ),
         (12.0, 3, 1.5, 2.0, "Active\nLearning\nLoop ↺", COLORS[4]),
     ]
     arrows = [(2.7, 4, 3.3), (5.7, 4, 6.3), (8.7, 4, 9.3), (11.7, 4, 12.2)]
 
-    for (x, y, w, h, label, color) in boxes:
-        rect = FancyBboxPatch((x, y), w, h, boxstyle="round,pad=0.15",
-                              facecolor=color, edgecolor="white",
-                              alpha=0.85, linewidth=2)
+    for x, y, w, h, label, color in boxes:
+        rect = FancyBboxPatch(
+            (x, y),
+            w,
+            h,
+            boxstyle="round,pad=0.15",
+            facecolor=color,
+            edgecolor="white",
+            alpha=0.85,
+            linewidth=2,
+        )
         ax.add_patch(rect)
-        ax.text(x + w/2, y + h/2, label, ha="center", va="center",
-                fontsize=9, color="white", fontweight="bold")
+        ax.text(
+            x + w / 2,
+            y + h / 2,
+            label,
+            ha="center",
+            va="center",
+            fontsize=9,
+            color="white",
+            fontweight="bold",
+        )
 
     for x1, y, x2 in arrows:
-        ax.annotate("", xy=(x2, y + 0.4), xytext=(x1, y + 0.4),
-                    arrowprops=dict(arrowstyle="->", color="#333333",
-                                   lw=2.5, connectionstyle="arc3,rad=0"))
+        ax.annotate(
+            "",
+            xy=(x2, y + 0.4),
+            xytext=(x1, y + 0.4),
+            arrowprops=dict(
+                arrowstyle="->", color="#333333", lw=2.5, connectionstyle="arc3,rad=0"
+            ),
+        )
 
     # Feedback loop arrow
-    ax.annotate("", xy=(2.0, 1.5), xytext=(12.5, 1.5),
-                arrowprops=dict(arrowstyle="->", color=COLORS[4],
-                               lw=2.5, linestyle="dashed",
-                               connectionstyle="arc3,rad=-0.3"))
-    ax.text(7.25, 1.0, "Uncertainty Sampling => Virtual Experiments",
-            ha="center", fontsize=9, color=COLORS[4], style="italic")
+    ax.annotate(
+        "",
+        xy=(2.0, 1.5),
+        xytext=(12.5, 1.5),
+        arrowprops=dict(
+            arrowstyle="->",
+            color=COLORS[4],
+            lw=2.5,
+            linestyle="dashed",
+            connectionstyle="arc3,rad=-0.3",
+        ),
+    )
+    ax.text(
+        7.25,
+        1.0,
+        "Uncertainty Sampling => Virtual Experiments",
+        ha="center",
+        fontsize=9,
+        color=COLORS[4],
+        style="italic",
+    )
 
     path = os.path.join(out_dir, "fig1_pipeline_schematic.pdf")
     fig.savefig(path)
@@ -92,17 +158,23 @@ def fig2_block_loadings(out_dir):
     from chemocalib.data.loader import generate_realistic_e_coli_data
 
     blocks, growth, meta = generate_realistic_e_coli_data(n_conditions=8, seed=42)
-    model = MultiBlockPLS(n_components=3,
-                          block_names=["Metabolome", "Transcriptome", "Proteome"])
+    model = MultiBlockPLS(
+        n_components=3, block_names=["Metabolome", "Transcriptome", "Proteome"]
+    )
     model.fit(blocks, growth)
 
     fig, axes = plt.subplots(1, 3, figsize=(15, 5))
     for k, ax in enumerate(axes):
         W = model.block_weights[k]
-        sns.heatmap(W.T, cmap="RdBu_r", center=0, ax=ax,
-                    cbar_kws={"shrink": 0.7},
-                    xticklabels=False,
-                    yticklabels=[f"LV {i+1}" for i in range(W.shape[1])])
+        sns.heatmap(
+            W.T,
+            cmap="RdBu_r",
+            center=0,
+            ax=ax,
+            cbar_kws={"shrink": 0.7},
+            xticklabels=False,
+            yticklabels=[f"LV {i+1}" for i in range(W.shape[1])],
+        )
         ax.set_title(f"{model.block_names[k]}\n({W.shape[0]} features)")
         ax.set_ylabel("Latent Variable")
         ax.set_xlabel("Feature index")
@@ -130,22 +202,49 @@ def fig3_latent_scores(out_dir):
 
     # Scores vs growth
     for i in range(T.shape[1]):
-        ax1.scatter(T[:, i], growth, s=100, color=COLORS[i], edgecolor="white",
-                   alpha=0.8, label=f"LV{i+1}", zorder=3)
+        ax1.scatter(
+            T[:, i],
+            growth,
+            s=100,
+            color=COLORS[i],
+            edgecolor="white",
+            alpha=0.8,
+            label=f"LV{i+1}",
+            zorder=3,
+        )
         corr = np.corrcoef(T[:, i], growth)[0, 1]
-        ax1.text(0.05, 0.95 - i * 0.1, f"r(LV{i+1},growth)={corr:.3f}",
-                transform=ax1.transAxes, fontsize=9, color=COLORS[i])
+        ax1.text(
+            0.05,
+            0.95 - i * 0.1,
+            f"r(LV{i+1},growth)={corr:.3f}",
+            transform=ax1.transAxes,
+            fontsize=9,
+            color=COLORS[i],
+        )
     ax1.set_xlabel("Latent Score")
     ax1.set_ylabel("Growth Rate")
     ax1.set_title("Latent-Growth Correlations")
     ax1.legend()
 
     # Scores scatter
-    sc = ax2.scatter(T[:, 0], T[:, 1], c=growth, cmap="YlOrRd",
-                     s=150, edgecolor="white", linewidth=1, zorder=3)
+    sc = ax2.scatter(
+        T[:, 0],
+        T[:, 1],
+        c=growth,
+        cmap="YlOrRd",
+        s=150,
+        edgecolor="white",
+        linewidth=1,
+        zorder=3,
+    )
     for i in range(len(cs)):
-        ax2.annotate(cs[i], (T[i, 0], T[i, 1]), fontsize=7,
-                    textcoords="offset points", xytext=(0, 8))
+        ax2.annotate(
+            cs[i],
+            (T[i, 0], T[i, 1]),
+            fontsize=7,
+            textcoords="offset points",
+            xytext=(0, 8),
+        )
     ax2.set_xlabel("LV1 Score")
     ax2.set_ylabel("LV2 Score")
     ax2.set_title("Latent Space by Carbon Source")
@@ -170,14 +269,18 @@ def fig4_constraint_mapping(out_dir):
 
     fig, axes = plt.subplots(1, 3, figsize=(14, 4.5))
     modes = ["soft", "hard", "adaptive"]
-    titles = ["Soft (Adaptive Width)", "Hard (Strict Direction)", "Adaptive (Data-Driven)"]
+    titles = [
+        "Soft (Adaptive Width)",
+        "Hard (Strict Direction)",
+        "Adaptive (Data-Driven)",
+    ]
 
     for ax, mode, title in zip(axes, modes, titles):
         mapper = LatentToConstraint(scaling_mode=mode)
         mapper.build_feature_reaction_map(names, rxns)
         bounds = mapper.latent_to_bounds(
-            np.array([2.0, 1.0, 0.5, -0.3, -1.0, -1.5, 0.1, 0.0]),
-            n_components=3)
+            np.array([2.0, 1.0, 0.5, -0.3, -1.0, -1.5, 0.1, 0.0]), n_components=3
+        )
 
         rxn_labels = list(bounds.keys())
         lbs = [bounds[r][0] for r in rxn_labels]
@@ -209,8 +312,9 @@ def fig5_active_learning(out_dir):
     pair_features = rng.normal(0, 1, (n_pairs, 3))
     residuals = [rng.gamma(2, 0.5, (n_pairs, 5))]
 
-    pairs = [(f"G_{i:02d}", f"G_{j:02d}")
-             for i in range(13) for j in range(i+1, 13)][:n_pairs]
+    pairs = [(f"G_{i:02d}", f"G_{j:02d}") for i in range(13) for j in range(i + 1, 13)][
+        :n_pairs
+    ]
 
     fig, axes = plt.subplots(1, 2, figsize=(12, 5))
 
@@ -224,7 +328,9 @@ def fig5_active_learning(out_dir):
         for _ in range(10):
             indices, scores = sampler.select_samples(residuals, n_select=5)
             all_scores.extend(list(scores))
-        axes[0].hist(all_scores, bins=12, alpha=0.5, label=label, color=color, density=True)
+        axes[0].hist(
+            all_scores, bins=12, alpha=0.5, label=label, color=color, density=True
+        )
 
     axes[0].set_xlabel("Uncertainty Score")
     axes[0].set_ylabel("Density")
@@ -233,12 +339,29 @@ def fig5_active_learning(out_dir):
 
     # DoE design space (LHS + uniform design)
     doe_lhs = rng.random((20, 2))
-    doe_grid = np.array([[x, y] for x in np.linspace(-2, 2, 6) for y in np.linspace(-2, 2, 6)])
+    doe_grid = np.array(
+        [[x, y] for x in np.linspace(-2, 2, 6) for y in np.linspace(-2, 2, 6)]
+    )
 
-    axes[1].scatter(doe_lhs[:, 0], doe_lhs[:, 1], s=80, c=COLORS[1],
-                   edgecolor="white", alpha=0.8, label="LHS (n=20)")
-    axes[1].scatter(doe_grid[:, 0], doe_grid[:, 1], s=100, marker="s", c=COLORS[4],
-                   edgecolor="white", alpha=0.7, label="Grid (n=36)")
+    axes[1].scatter(
+        doe_lhs[:, 0],
+        doe_lhs[:, 1],
+        s=80,
+        c=COLORS[1],
+        edgecolor="white",
+        alpha=0.8,
+        label="LHS (n=20)",
+    )
+    axes[1].scatter(
+        doe_grid[:, 0],
+        doe_grid[:, 1],
+        s=100,
+        marker="s",
+        c=COLORS[4],
+        edgecolor="white",
+        alpha=0.7,
+        label="Grid (n=36)",
+    )
     axes[1].set_xlabel("Factor A")
     axes[1].set_ylabel("Factor B")
     axes[1].set_title("DoE Design: LHS + Grid")
@@ -246,7 +369,9 @@ def fig5_active_learning(out_dir):
     axes[1].set_xlim(-2.5, 2.5)
     axes[1].set_ylim(-2.5, 2.5)
 
-    fig.suptitle("Active Learning & Experimental Design", fontsize=14, fontweight="bold")
+    fig.suptitle(
+        "Active Learning & Experimental Design", fontsize=14, fontweight="bold"
+    )
     plt.tight_layout()
     path = os.path.join(out_dir, "fig5_active_learning.pdf")
     fig.savefig(path)
@@ -262,8 +387,8 @@ def fig6_benchmark_comparison(out_dir):
     blocks, growth, meta = generate_realistic_e_coli_data(n_conditions=8, seed=42)
 
     runner = BenchmarkRunner(
-        methods=["chemocalib", "eflux", "made", "gecko"],
-        n_repeats=10, seed=42)
+        methods=["chemocalib", "eflux", "made", "gecko"], n_repeats=10, seed=42
+    )
     summary = runner.run(blocks, growth)
 
     methods = ["chemocalib", "eflux", "made", "gecko"]
@@ -278,35 +403,49 @@ def fig6_benchmark_comparison(out_dir):
     fig, axes = plt.subplots(1, 3, figsize=(15, 5))
     x = np.arange(len(methods))
 
-    bars1 = axes[0].bar(x, r2_means, yerr=r2_stds, color=COLORS[:4],
-                        capsize=5, edgecolor="white")
+    bars1 = axes[0].bar(
+        x, r2_means, yerr=r2_stds, color=COLORS[:4], capsize=5, edgecolor="white"
+    )
     axes[0].set_xticks(x)
     axes[0].set_xticklabels(display_names, rotation=25)
     axes[0].set_ylabel("R²")
     axes[0].set_title("Variance Explained")
     for bar, val in zip(bars1, r2_means):
-        axes[0].text(bar.get_x() + bar.get_width()/2, bar.get_height() + 0.02,
-                    f"{val:.3f}", ha="center", fontsize=8)
+        axes[0].text(
+            bar.get_x() + bar.get_width() / 2,
+            bar.get_height() + 0.02,
+            f"{val:.3f}",
+            ha="center",
+            fontsize=8,
+        )
 
-    bars2 = axes[1].bar(x, rmse_means, yerr=rmse_stds, color=COLORS[:4],
-                        capsize=5, edgecolor="white")
+    bars2 = axes[1].bar(
+        x, rmse_means, yerr=rmse_stds, color=COLORS[:4], capsize=5, edgecolor="white"
+    )
     axes[1].set_xticks(x)
     axes[1].set_xticklabels(display_names, rotation=25)
     axes[1].set_ylabel("RMSE")
     axes[1].set_title("Prediction Error")
     for bar, val in zip(bars2, rmse_means):
-        axes[1].text(bar.get_x() + bar.get_width()/2, bar.get_height() + 0.02,
-                    f"{val:.3f}", ha="center", fontsize=8)
+        axes[1].text(
+            bar.get_x() + bar.get_width() / 2,
+            bar.get_height() + 0.02,
+            f"{val:.3f}",
+            ha="center",
+            fontsize=8,
+        )
 
-    bars3 = axes[2].bar(x, spear_means, yerr=spear_stds, color=COLORS[:4],
-                        capsize=5, edgecolor="white")
+    bars3 = axes[2].bar(
+        x, spear_means, yerr=spear_stds, color=COLORS[:4], capsize=5, edgecolor="white"
+    )
     axes[2].set_xticks(x)
     axes[2].set_xticklabels(display_names, rotation=25)
     axes[2].set_ylabel("Spearman ρ")
     axes[2].set_title("Rank Correlation")
 
-    fig.suptitle("Method Benchmark (10 repeats, mean ± SD)",
-                 fontsize=14, fontweight="bold")
+    fig.suptitle(
+        "Method Benchmark (10 repeats, mean ± SD)", fontsize=14, fontweight="bold"
+    )
     plt.tight_layout()
     path = os.path.join(out_dir, "fig6_benchmark_comparison.pdf")
     fig.savefig(path)
@@ -336,7 +475,7 @@ def fig7_validation_scatter(out_dir):
 
     mapper = LatentToConstraint(scaling_mode="soft")
     names = [f"Met_{i}" for i in range(len(clean_ids))]
-    mapper.build_feature_reaction_map(names, clean_ids[:len(names)])
+    mapper.build_feature_reaction_map(names, clean_ids[: len(names)])
 
     T = model.super_scores
     chemo_pred = np.zeros(len(growth))
@@ -346,7 +485,9 @@ def fig7_validation_scatter(out_dir):
     for i in range(len(growth)):
         bounds = mapper.latent_to_bounds(T[i], n_components=3)
         res = sim.fba_with_chemometric_constraints(bounds)
-        chemo_pred[i] = res["objective_value"] if res["status"] == "optimal" else wt_growth
+        chemo_pred[i] = (
+            res["objective_value"] if res["status"] == "optimal" else wt_growth
+        )
 
     # E-Flux prediction
     eflux = EFluxBaseline(use_fba=True)
@@ -358,37 +499,60 @@ def fig7_validation_scatter(out_dir):
     fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(12, 5.5))
 
     # ChemoCalib scatter
-    ax1.scatter(growth, chemo_pred, s=120, c=COLORS[1], edgecolor="white",
-               alpha=0.8, zorder=3)
+    ax1.scatter(
+        growth, chemo_pred, s=120, c=COLORS[1], edgecolor="white", alpha=0.8, zorder=3
+    )
     for i, name in enumerate(cs):
-        ax1.annotate(name, (growth[i], chemo_pred[i]), fontsize=7,
-                    textcoords="offset points", xytext=(0, 8))
-    lims = [min(growth.min(), chemo_pred.min()) - 0.1,
-            max(growth.max(), chemo_pred.max()) + 0.1]
+        ax1.annotate(
+            name,
+            (growth[i], chemo_pred[i]),
+            fontsize=7,
+            textcoords="offset points",
+            xytext=(0, 8),
+        )
+    lims = [
+        min(growth.min(), chemo_pred.min()) - 0.1,
+        max(growth.max(), chemo_pred.max()) + 0.1,
+    ]
     ax1.plot(lims, lims, "k--", lw=1, alpha=0.5)
     ax1.set_xlabel("Observed Growth (μ)")
     ax1.set_ylabel("Predicted Growth (μ)")
-    r2_c = 1 - np.sum((growth - chemo_pred)**2) / np.sum((growth - np.mean(growth))**2)
-    rmse_c = np.sqrt(np.mean((growth - chemo_pred)**2))
+    r2_c = 1 - np.sum((growth - chemo_pred) ** 2) / np.sum(
+        (growth - np.mean(growth)) ** 2
+    )
+    rmse_c = np.sqrt(np.mean((growth - chemo_pred) ** 2))
     ax1.set_title(f"ChemoCalib\nR²={r2_c:.3f}, RMSE={rmse_c:.3f}")
 
     # E-Flux scatter
-    ax2.scatter(growth, eflux_pred, s=120, c=COLORS[0], edgecolor="white",
-               alpha=0.8, zorder=3)
+    ax2.scatter(
+        growth, eflux_pred, s=120, c=COLORS[0], edgecolor="white", alpha=0.8, zorder=3
+    )
     for i, name in enumerate(cs):
-        ax2.annotate(name, (growth[i], eflux_pred[i]), fontsize=7,
-                    textcoords="offset points", xytext=(0, 8))
-    lims2 = [min(growth.min(), eflux_pred.min()) - 0.1,
-             max(growth.max(), eflux_pred.max()) + 0.1]
+        ax2.annotate(
+            name,
+            (growth[i], eflux_pred[i]),
+            fontsize=7,
+            textcoords="offset points",
+            xytext=(0, 8),
+        )
+    lims2 = [
+        min(growth.min(), eflux_pred.min()) - 0.1,
+        max(growth.max(), eflux_pred.max()) + 0.1,
+    ]
     ax2.plot(lims2, lims2, "k--", lw=1, alpha=0.5)
     ax2.set_xlabel("Observed Growth (μ)")
     ax2.set_ylabel("Predicted Growth (μ)")
-    r2_e = 1 - np.sum((growth - eflux_pred)**2) / np.sum((growth - np.mean(growth))**2)
-    rmse_e = np.sqrt(np.mean((growth - eflux_pred)**2))
+    r2_e = 1 - np.sum((growth - eflux_pred) ** 2) / np.sum(
+        (growth - np.mean(growth)) ** 2
+    )
+    rmse_e = np.sqrt(np.mean((growth - eflux_pred) ** 2))
     ax2.set_title(f"E-Flux\nR²={r2_e:.3f}, RMSE={rmse_e:.3f}")
 
-    fig.suptitle("Predicted vs Observed Growth (Multi-Carbon-Source E. coli)",
-                 fontsize=14, fontweight="bold")
+    fig.suptitle(
+        "Predicted vs Observed Growth (Multi-Carbon-Source E. coli)",
+        fontsize=14,
+        fontweight="bold",
+    )
     plt.tight_layout()
     path = os.path.join(out_dir, "fig7_validation_scatter.pdf")
     fig.savefig(path)
@@ -428,12 +592,21 @@ def main(args):
 
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description="Generate ChemoCalib manuscript figures")
-    parser.add_argument("--fig", type=str, default="1,2,3,4,5,6,7",
-                        help="Comma-separated figure numbers to generate")
-    parser.add_argument("--all", action="store_true",
-                        help="Generate all 7 figures")
-    parser.add_argument("--out-dir", type=str, default="./figures",
-                        help="Output directory for figure PDFs")
+    parser = argparse.ArgumentParser(
+        description="Generate ChemoCalib manuscript figures"
+    )
+    parser.add_argument(
+        "--fig",
+        type=str,
+        default="1,2,3,4,5,6,7",
+        help="Comma-separated figure numbers to generate",
+    )
+    parser.add_argument("--all", action="store_true", help="Generate all 7 figures")
+    parser.add_argument(
+        "--out-dir",
+        type=str,
+        default="./figures",
+        help="Output directory for figure PDFs",
+    )
     args = parser.parse_args()
     sys.exit(main(args))

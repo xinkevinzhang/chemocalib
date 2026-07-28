@@ -55,7 +55,9 @@ metabolome = pd.DataFrame(
 gpr_rules = {}
 for r in range(n_reactions):
     n_genes_in_rule = rng.randint(1, 4)
-    gene_ids = [f"gene_{j+1}" for j in rng.choice(n_genes, n_genes_in_rule, replace=False)]
+    gene_ids = [
+        f"gene_{j+1}" for j in rng.choice(n_genes, n_genes_in_rule, replace=False)
+    ]
     gpr_rules[f"R{r+1:03d}"] = gene_ids
 
 # True fluxes (ground truth from 13C-MFA)
@@ -96,16 +98,16 @@ print("\n[3/5] Computing GPR-VIP scores...")
 from chemocalib.gem.gpr_vip import compute_gpr_vip
 
 # Compute VIP for transcriptome block
-vip_scores = compute_gpr_vip(
-    mbpls, block_idx=0, component_weights=None
-)
+vip_scores = compute_gpr_vip(mbpls, block_idx=0, component_weights=None)
 vip_df = pd.Series(vip_scores, index=transcriptome.columns)
 
 # Aggregate VIP by GPR rule
 reaction_vip = {}
 for rxn_id, gene_list in gpr_rules.items():
     gene_vips = [vip_df.get(g, 0.0) for g in gene_list]
-    reaction_vip[rxn_id] = np.sqrt(np.sum(np.array(gene_vips) ** 2))  # Euclidean aggregation
+    reaction_vip[rxn_id] = np.sqrt(
+        np.sum(np.array(gene_vips) ** 2)
+    )  # Euclidean aggregation
 
 reaction_vip = pd.Series(reaction_vip).sort_values(ascending=False)
 
@@ -116,7 +118,9 @@ for rxn, score in reaction_vip.head(5).items():
 # Select top VIP reactions
 vip_threshold = 1.0
 selected_reactions = reaction_vip[reaction_vip > vip_threshold].index.tolist()
-print(f"  Selected {len(selected_reactions)}/{len(reaction_vip)} reactions (VIP > {vip_threshold})")
+print(
+    f"  Selected {len(selected_reactions)}/{len(reaction_vip)} reactions (VIP > {vip_threshold})"
+)
 
 # -----------------------------------------------------------------------
 # Step 4: Constrained FBA (simulated)
@@ -137,7 +141,9 @@ for rxn_id in gpr_rules:
     }
 
 # Simulate FBA predictions
-predicted_fluxes = predict_flux_distribution(gpr_rules, reaction_bounds, true_flux_df, rng=42)
+predicted_fluxes = predict_flux_distribution(
+    gpr_rules, reaction_bounds, true_flux_df, rng=42
+)
 
 # Evaluate per-condition
 from scipy.stats import spearmanr, pearsonr
@@ -148,12 +154,20 @@ for i, cond in enumerate(true_flux_df.index):
     pred_vals = predicted_fluxes.iloc[i].values
     rho, _ = spearmanr(true_vals, pred_vals)
     r, _ = pearsonr(true_vals, pred_vals)
-    nrmse = np.sqrt(np.mean((true_vals - pred_vals) ** 2)) / (np.max(true_vals) - np.min(true_vals))
-    per_condition_results.append({"condition": cond, "spearman": rho, "pearson": r, "nrmse": nrmse})
+    nrmse = np.sqrt(np.mean((true_vals - pred_vals) ** 2)) / (
+        np.max(true_vals) - np.min(true_vals)
+    )
+    per_condition_results.append(
+        {"condition": cond, "spearman": rho, "pearson": r, "nrmse": nrmse}
+    )
 
 per_cond_df = pd.DataFrame(per_condition_results)
-print(f"  Mean Spearman rho: {per_cond_df['spearman'].mean():.3f} +/- {per_cond_df['spearman'].std():.3f}")
-print(f"  Mean Pearson r:    {per_cond_df['pearson'].mean():.3f} +/- {per_cond_df['pearson'].std():.3f}")
+print(
+    f"  Mean Spearman rho: {per_cond_df['spearman'].mean():.3f} +/- {per_cond_df['spearman'].std():.3f}"
+)
+print(
+    f"  Mean Pearson r:    {per_cond_df['pearson'].mean():.3f} +/- {per_cond_df['pearson'].std():.3f}"
+)
 print(f"  Mean NRMSE:        {per_cond_df['nrmse'].mean():.3f}")
 
 # -----------------------------------------------------------------------
@@ -164,7 +178,9 @@ print("\n[5/5] Generating summary figures...")
 fig, axes = plt.subplots(1, 2, figsize=(12, 5))
 
 # Left: VIP score distribution
-axes[0].barh(range(len(reaction_vip)), reaction_vip.values, color="steelblue", edgecolor="white")
+axes[0].barh(
+    range(len(reaction_vip)), reaction_vip.values, color="steelblue", edgecolor="white"
+)
 axes[0].axvline(x=1.0, color="red", linestyle="--", label="VIP=1 threshold")
 axes[0].set_yticks(range(len(reaction_vip)))
 axes[0].set_yticklabels(reaction_vip.index, fontsize=7)
@@ -181,7 +197,9 @@ axes[1].scatter(all_true, all_pred, alpha=0.4, s=20, c="steelblue", edgecolors="
 axes[1].plot(
     [all_true.min(), all_true.max()],
     [all_true.min(), all_true.max()],
-    "r--", linewidth=1, label="y = x"
+    "r--",
+    linewidth=1,
+    label="y = x",
 )
 axes[1].set_xlabel("13C-MFA Measured Flux")
 axes[1].set_ylabel("ChemoCalib Predicted Flux")
@@ -197,9 +215,13 @@ print(f"  Figure saved to: chemocalib/output/tutorial_figures.pdf")
 # Final summary
 print("\n" + "=" * 70)
 print("TUTORIAL COMPLETE")
-print(f"  Pipeline: MB-PLS({K} comp) -> GPR-VIP -> constrained FBA -> {n_conditions} conditions")
+print(
+    f"  Pipeline: MB-PLS({K} comp) -> GPR-VIP -> constrained FBA -> {n_conditions} conditions"
+)
 print(f"  Pooled Spearman    rho = {rho_pooled:.3f}")
 print(f"  Per-condition mean rho = {per_cond_df['spearman'].mean():.3f}")
 print(f"  Reactions selected:     {len(selected_reactions)}/{len(reaction_vip)}")
 print("=" * 70)
-print("\nNext: try python examples/example_multiblock_workflow.py for real data pipeline")
+print(
+    "\nNext: try python examples/example_multiblock_workflow.py for real data pipeline"
+)

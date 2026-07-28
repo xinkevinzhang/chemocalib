@@ -49,17 +49,22 @@ def mbpls(n_samples, n_components, seed, output):
     """
     from chemocalib.models.mbpls import MultiBlockPLS, generate_toy_multiblock_data
 
-    console.print(Panel.fit("[bold cyan]多块 PLS 分析[/bold cyan]", border_style="cyan"))
+    console.print(
+        Panel.fit("[bold cyan]多块 PLS 分析[/bold cyan]", border_style="cyan")
+    )
 
     with Progress(
-        SpinnerColumn(), TextColumn("[progress.description]{task.description}"),
+        SpinnerColumn(),
+        TextColumn("[progress.description]{task.description}"),
         console=console,
     ) as progress:
         task = progress.add_task("生成合成多组学数据...", total=None)
         blocks, y, feature_names = generate_toy_multiblock_data(
             n_samples=n_samples, seed=seed
         )
-        progress.update(task, description=f"已生成数据: {blocks[0].shape[0]} 样本, 3 块")
+        progress.update(
+            task, description=f"已生成数据: {blocks[0].shape[0]} 样本, 3 块"
+        )
 
         task2 = progress.add_task("训练 MB-PLS 模型...", total=None)
         model = MultiBlockPLS(
@@ -84,7 +89,9 @@ def mbpls(n_samples, n_components, seed, output):
     # 残差不确性
     residuals = model.residual_space(blocks)
     uncertainty = model.uncertainty_score(blocks)
-    console.print(f"\n[bold]残差不确定性 (Top 5):[/bold] {np.sort(uncertainty)[::-1][:5].round(4)}")
+    console.print(
+        f"\n[bold]残差不确定性 (Top 5):[/bold] {np.sort(uncertainty)[::-1][:5].round(4)}"
+    )
 
     if output:
         result = model.to_dict()
@@ -108,15 +115,20 @@ def constrain(n_samples, n_components, model_name, mode, output):
     from chemocalib.gem.constraints import LatentToConstraint
     from chemocalib.gem.fba import FBASimulator
 
-    console.print(Panel.fit("[bold cyan]潜变量 → GEM 约束映射[/bold cyan]", border_style="cyan"))
+    console.print(
+        Panel.fit("[bold cyan]潜变量 → GEM 约束映射[/bold cyan]", border_style="cyan")
+    )
 
     with Progress(
-        SpinnerColumn(), TextColumn("[progress.description]{task.description}"),
+        SpinnerColumn(),
+        TextColumn("[progress.description]{task.description}"),
         console=console,
     ) as progress:
         task = progress.add_task("生成数据 + 训练 MB-PLS...", total=None)
         blocks, y, feature_names = generate_toy_multiblock_data(n_samples=n_samples)
-        model = MultiBlockPLS(n_components=n_components, block_names=["代谢组", "转录组", "蛋白组"])
+        model = MultiBlockPLS(
+            n_components=n_components, block_names=["代谢组", "转录组", "蛋白组"]
+        )
         model.fit(blocks, y)
 
         task2 = progress.add_task("加载 GEM 模型...", total=None)
@@ -129,7 +141,7 @@ def constrain(n_samples, n_components, model_name, mode, output):
         gem_met_ids = [m.replace("EX_", "") for m in gem_metabolites]
         mapper.build_feature_reaction_map(
             feature_names[0],
-            gem_met_ids[:len(feature_names[0])],
+            gem_met_ids[: len(feature_names[0])],
             vip_scores=model.vip_scores[0],
         )
 
@@ -142,9 +154,12 @@ def constrain(n_samples, n_components, model_name, mode, output):
     table = Table(title="约束 → FBA 结果")
     table.add_column("指标", style="cyan")
     table.add_column("值", style="green")
-    table.add_row("约束施加数", f"{fba_result['constraints_applied']}/{fba_result['constraints_total']}")
+    table.add_row(
+        "约束施加数",
+        f"{fba_result['constraints_applied']}/{fba_result['constraints_total']}",
+    )
     table.add_row("目标值 (生物量)", f"{fba_result['objective_value']:.4f}")
-    table.add_row("求解状态", fba_result['status'])
+    table.add_row("求解状态", fba_result["status"])
     console.print(table)
 
     console.print("\n[bold]施加的约束:[/bold]")
@@ -173,10 +188,13 @@ def knockout(n_pairs, model_name, strategy, output):
     from chemocalib.gem.fba import FBASimulator
     from chemocalib.virtual_experiment.knockout import DoubleKnockoutDesigner
 
-    console.print(Panel.fit("[bold cyan]虚拟双敲除实验[/bold cyan]", border_style="cyan"))
+    console.print(
+        Panel.fit("[bold cyan]虚拟双敲除实验[/bold cyan]", border_style="cyan")
+    )
 
     with Progress(
-        SpinnerColumn(), TextColumn("[progress.description]{task.description}"),
+        SpinnerColumn(),
+        TextColumn("[progress.description]{task.description}"),
         console=console,
     ) as progress:
         task = progress.add_task("加载 GEM 模型...", total=None)
@@ -201,7 +219,10 @@ def knockout(n_pairs, model_name, strategy, output):
     table.add_column("值", style="green")
     table.add_row("总实验数", str(analysis["n_total"]))
     table.add_row("致死 (生长率=0)", str(analysis["n_lethal"]))
-    table.add_row("非致死", str(analysis.get("n_nonlethal", analysis["n_total"] - analysis["n_lethal"])))
+    table.add_row(
+        "非致死",
+        str(analysis.get("n_nonlethal", analysis["n_total"] - analysis["n_lethal"])),
+    )
     gs = analysis.get("growth_stats", {})
     table.add_row("平均生长率", f"{gs.get('mean', 0):.4f}")
     table.add_row("生长率标准差", f"{gs.get('std', 0):.4f}")
@@ -220,7 +241,9 @@ def knockout(n_pairs, model_name, strategy, output):
 @main.command()
 @click.option("--n-samples", default=100, help="样本数")
 @click.option("--n-select", default=10, help="选取数量")
-@click.option("--strategy", default="hybrid", help="采样策略: residual/entropy/diversity/hybrid")
+@click.option(
+    "--strategy", default="hybrid", help="采样策略: residual/entropy/diversity/hybrid"
+)
 @click.option("--output", default=None, help="输出 JSON 路径")
 def active_learn(n_samples, n_select, strategy, output):
     """
@@ -233,12 +256,15 @@ def active_learn(n_samples, n_select, strategy, output):
     console.print(Panel.fit("[bold cyan]主动学习选样[/bold cyan]", border_style="cyan"))
 
     with Progress(
-        SpinnerColumn(), TextColumn("[progress.description]{task.description}"),
+        SpinnerColumn(),
+        TextColumn("[progress.description]{task.description}"),
         console=console,
     ) as progress:
         task = progress.add_task("训练 MB-PLS...", total=None)
         blocks, y, feature_names = generate_toy_multiblock_data(n_samples=n_samples)
-        model = MultiBlockPLS(n_components=5, block_names=["代谢组", "转录组", "蛋白组"])
+        model = MultiBlockPLS(
+            n_components=5, block_names=["代谢组", "转录组", "蛋白组"]
+        )
         model.fit(blocks, y)
 
         task2 = progress.add_task("计算残差空间...", total=None)
@@ -250,8 +276,10 @@ def active_learn(n_samples, n_select, strategy, output):
 
         # 模拟基因对
         n_genes = 50
-        gene_pairs = [(f"G{i}", f"G{j}") for i in range(n_genes) for j in range(i + 1, n_genes)]
-        pair_subset = gene_pairs[:min(len(gene_pairs), 500)]
+        gene_pairs = [
+            (f"G{i}", f"G{j}") for i in range(n_genes) for j in range(i + 1, n_genes)
+        ]
+        pair_subset = gene_pairs[: min(len(gene_pairs), 500)]
 
         # 选候选
         candidates = sampler.select_double_knockout_candidates(
@@ -293,17 +321,24 @@ def ode(duration, n_points, calibrate, output):
     from chemocalib.dynamic_layer.ode_solver import GlycolysisODE
     from chemocalib.models.mbpls import generate_toy_multiblock_data
 
-    console.print(Panel.fit("[bold cyan]糖酵解 ODE 动态模拟[/bold cyan]", border_style="cyan"))
+    console.print(
+        Panel.fit("[bold cyan]糖酵解 ODE 动态模拟[/bold cyan]", border_style="cyan")
+    )
 
     ode_model = GlycolysisODE(
-        vmax_hk=1.0, vmax_pfk=1.2, vmax_pk=0.8,
-        km_glc=1.0, km_g6p=0.5, km_fbp=0.3,
+        vmax_hk=1.0,
+        vmax_pfk=1.2,
+        vmax_pk=0.8,
+        km_glc=1.0,
+        km_g6p=0.5,
+        km_fbp=0.3,
     )
 
     if calibrate:
         console.print("[dim]使用 PLS 潜变量校准 ODE 参数...[/dim]")
         blocks, y, _ = generate_toy_multiblock_data(n_samples=100)
         from chemocalib.models.mbpls import MultiBlockPLS
+
         mbpls = MultiBlockPLS(n_components=3)
         mbpls.fit(blocks, y)
         latent_mean = mbpls.super_scores.mean(axis=0)
@@ -325,15 +360,21 @@ def ode(duration, n_points, calibrate, output):
     console.print(f"\n[bold]kcat 代理值:[/bold] {kcat}")
 
     if output:
-        df = pd.DataFrame({
-            "t": result["t"],
-            "G6P": result["G6P"],
-            "FBP": result["FBP"],
-            "PYR": result["PYR"],
-            "v_HK": result["fluxes"]["v_HK"] if isinstance(result["fluxes"]["v_HK"], np.ndarray) else np.full_like(result["t"], result["fluxes"]["v_HK"]),
-            "v_PFK": result["fluxes"]["v_PFK"],
-            "v_PK": result["fluxes"]["v_PK"],
-        })
+        df = pd.DataFrame(
+            {
+                "t": result["t"],
+                "G6P": result["G6P"],
+                "FBP": result["FBP"],
+                "PYR": result["PYR"],
+                "v_HK": (
+                    result["fluxes"]["v_HK"]
+                    if isinstance(result["fluxes"]["v_HK"], np.ndarray)
+                    else np.full_like(result["t"], result["fluxes"]["v_HK"])
+                ),
+                "v_PFK": result["fluxes"]["v_PFK"],
+                "v_PK": result["fluxes"]["v_PK"],
+            }
+        )
         df.to_csv(output, index=False)
         console.print(f"[green]时间序列已保存到 {output}[/green]")
 
@@ -347,7 +388,9 @@ def ode(duration, n_points, calibrate, output):
 @click.option("--mode", default="soft", help="约束模式: soft/hard/adaptive")
 @click.option("--skip-ode", is_flag=True, help="跳过 ODE 模拟")
 @click.option("--output-dir", default="./output", help="输出目录")
-def pipeline(n_samples, n_components, n_pairs, n_select, model_name, mode, skip_ode, output_dir):
+def pipeline(
+    n_samples, n_components, n_pairs, n_select, model_name, mode, skip_ode, output_dir
+):
     """
     完整闭环 Pipeline: MB-PLS → GEM约束 → 双敲除 → 主动选样 → ODE
     """
@@ -362,11 +405,13 @@ def pipeline(n_samples, n_components, n_pairs, n_select, model_name, mode, skip_
 
     os.makedirs(output_dir, exist_ok=True)
 
-    console.print(Panel.fit(
-        "[bold cyan]ChemoCalib 完整闭环 Pipeline[/bold cyan]\n"
-        "多块 PLS → 多约束 GEM → 虚拟双敲除 → 主动选样 → ODE 动态层",
-        border_style="cyan",
-    ))
+    console.print(
+        Panel.fit(
+            "[bold cyan]ChemoCalib 完整闭环 Pipeline[/bold cyan]\n"
+            "多块 PLS → 多约束 GEM → 虚拟双敲除 → 主动选样 → ODE 动态层",
+            border_style="cyan",
+        )
+    )
 
     start_time = time.time()
     results_summary = {}
@@ -400,14 +445,16 @@ def pipeline(n_samples, n_components, n_pairs, n_select, model_name, mode, skip_
     mapper = LatentToConstraint(scaling_mode=mode)
     mapper.build_feature_reaction_map(
         feature_names[0],
-        gem_met_ids[:len(feature_names[0])],
+        gem_met_ids[: len(feature_names[0])],
         vip_scores=vip_scores,
     )
 
     latent_mean = mbpls.super_scores.mean(axis=0)
     bounds = mapper.latent_to_bounds(latent_mean, n_components=3)
     fba_result = sim.fba_with_chemometric_constraints(bounds)
-    console.print(f"  施加 {fba_result['constraints_applied']}/{fba_result['constraints_total']} 个约束")
+    console.print(
+        f"  施加 {fba_result['constraints_applied']}/{fba_result['constraints_total']} 个约束"
+    )
     console.print(f"  约束后生物量: {fba_result['objective_value']:.4f}")
     results_summary["constraint_fba"] = {
         "wt_biomass": wt_result["objective_value"],
@@ -436,7 +483,9 @@ def pipeline(n_samples, n_components, n_pairs, n_select, model_name, mode, skip_
             table.add_row(k, str(v))
     console.print(table)
     results_summary["knockout"] = analysis
-    dko_results.to_csv(os.path.join(output_dir, "double_knockout_results.csv"), index=False)
+    dko_results.to_csv(
+        os.path.join(output_dir, "double_knockout_results.csv"), index=False
+    )
 
     # =================================================================
     # Step 4: 主动学习选样
@@ -461,9 +510,13 @@ def pipeline(n_samples, n_components, n_pairs, n_select, model_name, mode, skip_
     table.add_column("基因B", style="yellow")
     table.add_column("不确定性", style="green")
     for _, row in candidates.iterrows():
-        table.add_row(str(row["rank"]), row["gene_a"], row["gene_b"], f"{row['uncertainty']:.4f}")
+        table.add_row(
+            str(row["rank"]), row["gene_a"], row["gene_b"], f"{row['uncertainty']:.4f}"
+        )
     console.print(table)
-    candidates.to_csv(os.path.join(output_dir, "active_learning_candidates.csv"), index=False)
+    candidates.to_csv(
+        os.path.join(output_dir, "active_learning_candidates.csv"), index=False
+    )
     results_summary["active_learning"] = candidates.to_dict(orient="records")
 
     # =================================================================
@@ -485,14 +538,18 @@ def pipeline(n_samples, n_components, n_pairs, n_select, model_name, mode, skip_
             table.add_row(name, f"{ode_result[name][-1]:.4f}", ss_val)
         console.print(table)
 
-        ode_df = pd.DataFrame({
-            "t": ode_result["t"],
-            "G6P": ode_result["G6P"],
-            "FBP": ode_result["FBP"],
-            "PYR": ode_result["PYR"],
-        })
+        ode_df = pd.DataFrame(
+            {
+                "t": ode_result["t"],
+                "G6P": ode_result["G6P"],
+                "FBP": ode_result["FBP"],
+                "PYR": ode_result["PYR"],
+            }
+        )
         ode_df.to_csv(os.path.join(output_dir, "ode_timecourse.csv"), index=False)
-        results_summary["ode"] = {"final_state": {n: float(ode_result[n][-1]) for n in ["G6P", "FBP", "PYR"]}}
+        results_summary["ode"] = {
+            "final_state": {n: float(ode_result[n][-1]) for n in ["G6P", "FBP", "PYR"]}
+        }
 
     # =================================================================
     # 完成
@@ -510,7 +567,9 @@ def pipeline(n_samples, n_components, n_pairs, n_select, model_name, mode, skip_
     console.print(f"  - active_learning_candidates.csv")
     if not skip_ode:
         console.print(f"  - ode_timecourse.csv")
-    console.print(f"\n[bold cyan]研究身份: 我用化学计量学把多组学定量校准进代谢约束的那一层[/bold cyan]")
+    console.print(
+        f"\n[bold cyan]研究身份: 我用化学计量学把多组学定量校准进代谢约束的那一层[/bold cyan]"
+    )
 
 
 if __name__ == "__main__":

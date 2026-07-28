@@ -29,12 +29,24 @@ def main():
     parser = argparse.ArgumentParser(
         description="ChemoCalib Stage 2 Pipeline — 多块PLS→多约束GEM→主动选样闭环"
     )
-    parser.add_argument("--n-samples", type=int, default=100, help="合成数据样本数 (默认100)")
-    parser.add_argument("--n-components", type=int, default=5, help="潜变量分量数 (默认5)")
-    parser.add_argument("--n-pairs", type=int, default=150, help="双敲除对数 (轻薄本建议100-200)")
-    parser.add_argument("--n-select", type=int, default=10, help="主动学习选取数 (默认10)")
-    parser.add_argument("--model", type=str, default="textbook", help="GEM模型: textbook 或 iMM904")
-    parser.add_argument("--mode", type=str, default="soft", help="约束模式: soft/hard/adaptive")
+    parser.add_argument(
+        "--n-samples", type=int, default=100, help="合成数据样本数 (默认100)"
+    )
+    parser.add_argument(
+        "--n-components", type=int, default=5, help="潜变量分量数 (默认5)"
+    )
+    parser.add_argument(
+        "--n-pairs", type=int, default=150, help="双敲除对数 (轻薄本建议100-200)"
+    )
+    parser.add_argument(
+        "--n-select", type=int, default=10, help="主动学习选取数 (默认10)"
+    )
+    parser.add_argument(
+        "--model", type=str, default="textbook", help="GEM模型: textbook 或 iMM904"
+    )
+    parser.add_argument(
+        "--mode", type=str, default="soft", help="约束模式: soft/hard/adaptive"
+    )
     parser.add_argument("--skip-ode", action="store_true", help="跳过 ODE 动态层")
     parser.add_argument("--output-dir", type=str, default="./output", help="输出目录")
     args = parser.parse_args()
@@ -98,7 +110,7 @@ def main():
     mapper = LatentToConstraint(scaling_mode=args.mode)
     mapper.build_feature_reaction_map(
         feature_names[0],
-        gem_met_ids[:len(feature_names[0])],
+        gem_met_ids[: len(feature_names[0])],
         vip_scores=mbpls.vip_scores[0],
     )
 
@@ -106,7 +118,9 @@ def main():
     bounds = mapper.latent_to_bounds(latent_mean, n_components=3)
     fba_result = sim.fba_with_chemometric_constraints(bounds)
     print(f"  约束后生物量: {fba_result['objective_value']:.4f}")
-    print(f"  已施加约束: {fba_result['constraints_applied']}/{fba_result['constraints_total']}")
+    print(
+        f"  已施加约束: {fba_result['constraints_applied']}/{fba_result['constraints_total']}"
+    )
 
     # ============================================================
     # Step 3: 虚拟双敲除
@@ -123,7 +137,9 @@ def main():
     dko_results = designer.run_virtual_experiments(sim, verbose=True)
     analysis = designer.analyze_results()
     print(f"  完成 {analysis['n_total']} 组双敲除")
-    print(f"  致死: {analysis['n_lethal']} | 非致死: {analysis.get('n_nonlethal', '?')}")
+    print(
+        f"  致死: {analysis['n_lethal']} | 非致死: {analysis.get('n_nonlethal', '?')}"
+    )
     gs = analysis.get("growth_stats", {})
     print(f"  平均生长率: {gs.get('mean', 0):.4f} ± {gs.get('std', 0):.4f}")
 
@@ -152,7 +168,9 @@ def main():
     print(f"  【主动学习推荐】Top {args.n_select} 给合作者真做:")
     print(f"  {'='*40}")
     for _, row in candidates.iterrows():
-        print(f"  #{int(row['rank']):2d}  敲除 {row['gene_a']} + {row['gene_b']}  (不确定性: {row['uncertainty']:.4f})")
+        print(
+            f"  #{int(row['rank']):2d}  敲除 {row['gene_a']} + {row['gene_b']}  (不确定性: {row['uncertainty']:.4f})"
+        )
 
     # ============================================================
     # Step 5: ODE 动态层
@@ -179,8 +197,12 @@ def main():
     # 保存结果
     # ============================================================
     os.makedirs(args.output_dir, exist_ok=True)
-    dko_results.to_csv(os.path.join(args.output_dir, "double_knockout_results.csv"), index=False)
-    candidates.to_csv(os.path.join(args.output_dir, "active_learning_candidates.csv"), index=False)
+    dko_results.to_csv(
+        os.path.join(args.output_dir, "double_knockout_results.csv"), index=False
+    )
+    candidates.to_csv(
+        os.path.join(args.output_dir, "active_learning_candidates.csv"), index=False
+    )
 
     elapsed = time.time() - overall_start
     print("\n" + "=" * 70)

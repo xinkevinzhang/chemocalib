@@ -60,6 +60,7 @@ DATASETS = {
 
 # ── Pipeline functions ──────────────────────────────────────────────
 
+
 def chemocalib_fba_predict(blocks, growth, model_name="textbook", seed=42):
     """Run the full ChemoCalib pipeline with COBRApy FBA."""
     mbpls = MultiBlockPLS(n_components=min(5, min(b.shape[1] for b in blocks)))
@@ -75,7 +76,7 @@ def chemocalib_fba_predict(blocks, growth, model_name="textbook", seed=42):
 
     mapper = LatentToConstraint(scaling_mode="soft")
     names = [f"Met_{i}" for i in range(len(clean_ids))]
-    mapper.build_feature_reaction_map(names, clean_ids[:len(names)])
+    mapper.build_feature_reaction_map(names, clean_ids[: len(names)])
 
     super_scores = mbpls.super_scores
     predicted = []
@@ -95,7 +96,10 @@ def chemocalib_fba_predict(blocks, growth, model_name="textbook", seed=42):
 
     return {
         "method": "ChemoCalib",
-        "rmse": rmse, "mae": mae, "r2": r2, "nrmse": nrmse,
+        "rmse": rmse,
+        "mae": mae,
+        "r2": r2,
+        "nrmse": nrmse,
         "predicted": predicted,
         "n_components": mbpls.n_components,
         "block_importance": mbpls.block_importance.tolist(),
@@ -137,7 +141,10 @@ def eflux_fba_predict(blocks, growth, model_name="textbook", seed=42):
 
     return {
         "method": "E-Flux",
-        "rmse": rmse, "mae": mae, "r2": r2, "nrmse": nrmse,
+        "rmse": rmse,
+        "mae": mae,
+        "r2": r2,
+        "nrmse": nrmse,
         "predicted": predicted,
     }
 
@@ -145,13 +152,16 @@ def eflux_fba_predict(blocks, growth, model_name="textbook", seed=42):
 def cross_validated_benchmark(blocks, growth, n_folds=5, seed=42):
     """K-fold cross-validated benchmark returning fold-level metrics."""
     from scipy import stats as scipy_stats
+
     rng = np.random.default_rng(seed)
     n_samples = growth.shape[0]
     indices = rng.permutation(n_samples)
     fold_size = n_samples // n_folds
 
-    results = {"chemocalib": {"rmse": [], "mae": [], "r2": [], "nrmse": []},
-               "eflux": {"rmse": [], "mae": [], "r2": [], "nrmse": []}}
+    results = {
+        "chemocalib": {"rmse": [], "mae": [], "r2": [], "nrmse": []},
+        "eflux": {"rmse": [], "mae": [], "r2": [], "nrmse": []},
+    }
 
     for fold in range(n_folds):
         test_start = fold * fold_size
@@ -164,17 +174,21 @@ def cross_validated_benchmark(blocks, growth, n_folds=5, seed=42):
         train_growth = growth[train_idx]
         test_growth = growth[test_idx]
 
-        full_blocks = [np.vstack([tb, teb]) for tb, teb in zip(train_blocks, test_blocks)]
+        full_blocks = [
+            np.vstack([tb, teb]) for tb, teb in zip(train_blocks, test_blocks)
+        ]
         full_growth = np.concatenate([train_growth, test_growth])
         n_train = len(train_growth)
 
-        for method_name, fn in [("chemocalib", chemocalib_fba_predict),
-                                 ("eflux", eflux_fba_predict)]:
+        for method_name, fn in [
+            ("chemocalib", chemocalib_fba_predict),
+            ("eflux", eflux_fba_predict),
+        ]:
             res = fn(full_blocks, full_growth, seed=seed)
             if "predicted" in res:
                 test_pred = res["predicted"][n_train:]
                 if len(test_pred) != len(test_growth):
-                    test_pred = test_pred[:len(test_growth)]
+                    test_pred = test_pred[: len(test_growth)]
 
                 fold_rmse = np.sqrt(np.mean((test_growth - test_pred) ** 2))
                 fold_mae = np.mean(np.abs(test_growth - test_pred))
@@ -197,6 +211,7 @@ def cross_validated_benchmark(blocks, growth, n_folds=5, seed=42):
 
 
 # ── Main ────────────────────────────────────────────────────────────
+
 
 def main(args):
     print("=" * 72)
@@ -231,36 +246,48 @@ def main(args):
         mbpls.fit(blocks, growth)
         pt = permutation_test(
             model_factory=lambda: MultiBlockPLS(n_components=n_comp),
-            blocks=blocks, y=growth, n_permutations=200, seed=cfg["gen_kwargs"]["seed"])
-        print(f"  MB-PLS: n_comp={n_comp}  |  Q2={pt['observed']:.3f}  |  "
-              f"perm-p={pt['p_value']:.4f}")
+            blocks=blocks,
+            y=growth,
+            n_permutations=200,
+            seed=cfg["gen_kwargs"]["seed"],
+        )
+        print(
+            f"  MB-PLS: n_comp={n_comp}  |  Q2={pt['observed']:.3f}  |  "
+            f"perm-p={pt['p_value']:.4f}"
+        )
 
         # ChemoCalib FBA
         t0 = time.time()
         chemo = chemocalib_fba_predict(blocks, growth, model_name=args.model)
         dt1 = time.time() - t0
-        print(f"  ChemoCalib: RMSE={chemo['rmse']:.4f}  MAE={chemo['mae']:.4f}  "
-              f"R2={chemo['r2']:.4f}  NRMSE={chemo['nrmse']:.4f}  "
-              f"({dt1:.1f}s)")
+        print(
+            f"  ChemoCalib: RMSE={chemo['rmse']:.4f}  MAE={chemo['mae']:.4f}  "
+            f"R2={chemo['r2']:.4f}  NRMSE={chemo['nrmse']:.4f}  "
+            f"({dt1:.1f}s)"
+        )
 
         # E-Flux baseline
         t0 = time.time()
         eflux = eflux_fba_predict(blocks, growth, model_name=args.model)
         dt2 = time.time() - t0
-        print(f"  E-Flux:     RMSE={eflux['rmse']:.4f}  MAE={eflux['mae']:.4f}  "
-              f"R2={eflux['r2']:.4f}  NRMSE={eflux['nrmse']:.4f}  "
-              f"({dt2:.1f}s)")
+        print(
+            f"  E-Flux:     RMSE={eflux['rmse']:.4f}  MAE={eflux['mae']:.4f}  "
+            f"R2={eflux['r2']:.4f}  NRMSE={eflux['nrmse']:.4f}  "
+            f"({dt2:.1f}s)"
+        )
 
         # Improvement
         imp_rmse = (1 - chemo["rmse"] / (eflux["rmse"] + 1e-12)) * 100
         imp_nrmse = (1 - chemo["nrmse"] / (eflux["nrmse"] + 1e-12)) * 100
-        print(f"  Improvement over E-Flux: RMSE {imp_rmse:+.1f}%, "
-              f"NRMSE {imp_nrmse:+.1f}%")
+        print(
+            f"  Improvement over E-Flux: RMSE {imp_rmse:+.1f}%, "
+            f"NRMSE {imp_nrmse:+.1f}%"
+        )
 
         # Cross-validation
         cv_results, t_cv, p_cv = cross_validated_benchmark(
-            blocks, growth, n_folds=args.folds,
-            seed=cfg["gen_kwargs"]["seed"])
+            blocks, growth, n_folds=args.folds, seed=cfg["gen_kwargs"]["seed"]
+        )
 
         c_rmse = np.mean(cv_results["chemocalib"]["rmse"])
         c_nrmse = np.mean(cv_results["chemocalib"]["nrmse"])
@@ -268,27 +295,31 @@ def main(args):
         e_nrmse = np.mean(cv_results["eflux"]["nrmse"])
         c_r2 = np.mean(cv_results["chemocalib"]["r2"])
 
-        print(f"  CV ({args.folds}-fold): ChemoCalib NRMSE={c_nrmse:.4f}  "
-              f"R2={c_r2:.4f}  |  E-Flux NRMSE={e_nrmse:.4f}")
+        print(
+            f"  CV ({args.folds}-fold): ChemoCalib NRMSE={c_nrmse:.4f}  "
+            f"R2={c_r2:.4f}  |  E-Flux NRMSE={e_nrmse:.4f}"
+        )
         print(f"  Paired t-test: t={t_cv:.3f}  p={p_cv:.4f}")
 
-        all_summaries.append({
-            "Dataset": cfg["name"],
-            "Samples": n_cond,
-            "Q2": round(pt["observed"], 3),
-            "ChemoCalib_RMSE": round(chemo["rmse"], 4),
-            "ChemoCalib_R2": round(chemo["r2"], 4),
-            "ChemoCalib_NRMSE": round(chemo["nrmse"], 4),
-            "EFlux_RMSE": round(eflux["rmse"], 4),
-            "EFlux_R2": round(eflux["r2"], 4),
-            "EFlux_NRMSE": round(eflux["nrmse"], 4),
-            "NRMSE_Improv_pct": round(imp_nrmse, 1),
-            "CV_ChemoCalib_NRMSE": round(c_nrmse, 4),
-            "CV_ChemoCalib_R2": round(c_r2, 4),
-            "CV_EFlux_NRMSE": round(e_nrmse, 4),
-            "CV_t_stat": round(float(t_cv), 3),
-            "CV_p_value": f"{float(p_cv):.4f}",
-        })
+        all_summaries.append(
+            {
+                "Dataset": cfg["name"],
+                "Samples": n_cond,
+                "Q2": round(pt["observed"], 3),
+                "ChemoCalib_RMSE": round(chemo["rmse"], 4),
+                "ChemoCalib_R2": round(chemo["r2"], 4),
+                "ChemoCalib_NRMSE": round(chemo["nrmse"], 4),
+                "EFlux_RMSE": round(eflux["rmse"], 4),
+                "EFlux_R2": round(eflux["r2"], 4),
+                "EFlux_NRMSE": round(eflux["nrmse"], 4),
+                "NRMSE_Improv_pct": round(imp_nrmse, 1),
+                "CV_ChemoCalib_NRMSE": round(c_nrmse, 4),
+                "CV_ChemoCalib_R2": round(c_r2, 4),
+                "CV_EFlux_NRMSE": round(e_nrmse, 4),
+                "CV_t_stat": round(float(t_cv), 3),
+                "CV_p_value": f"{float(p_cv):.4f}",
+            }
+        )
 
     # ── Grand summary ──
     print(f"\n\n{'='*72}")
@@ -308,14 +339,22 @@ def main(args):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Real data validation -- 3 datasets")
-    parser.add_argument("--model", type=str, default="textbook",
-                        choices=["textbook", "e_coli_core"],
-                        help="COBRApy model name")
-    parser.add_argument("--datasets", type=str, default=None,
-                        help="Comma-separated dataset keys, e.g. ecoli_carbon,ecoli_ko,yeast_stress")
-    parser.add_argument("--folds", type=int, default=3,
-                        help="Number of CV folds")
-    parser.add_argument("--output", type=str, default="./output",
-                        help="Output directory")
+    parser.add_argument(
+        "--model",
+        type=str,
+        default="textbook",
+        choices=["textbook", "e_coli_core"],
+        help="COBRApy model name",
+    )
+    parser.add_argument(
+        "--datasets",
+        type=str,
+        default=None,
+        help="Comma-separated dataset keys, e.g. ecoli_carbon,ecoli_ko,yeast_stress",
+    )
+    parser.add_argument("--folds", type=int, default=3, help="Number of CV folds")
+    parser.add_argument(
+        "--output", type=str, default="./output", help="Output directory"
+    )
     args = parser.parse_args()
     sys.exit(main(args))
