@@ -134,16 +134,10 @@ BibTeX:
   journal = {bioRxiv},
   year    = {2026},
   doi     = {10.1101/2026.07.xx.xxxxxx},
-  note    = {Preprint. Software: https://doi.org/10.5281/zenodo.YYYYYYY}
+
 }
 
-@misc{chemocalib2026software,
-  title  = {ChemoCalib v1.0.0},
-  author = {Zhang, Xin},
-  year   = {2026},
-  doi    = {10.5281/zenodo.YYYYYYY},
-  url    = {https://github.com/chemocalib/chemocalib}
-}
+
 ```
 
 ## License
