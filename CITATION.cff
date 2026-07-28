@@ -1,11 +1,18 @@
 cff-version: 1.2.0
-message: "If you use ChemoCalib, please cite the following paper."
+title: ChemoCalib
+message: "If you use ChemoCalib, please cite the preprint (bioRxiv) and the software archive (Zenodo)."
 authors:
-  - family-names: "Zhang"
-    given-names: "Xin"
-    orcid: "https://orcid.org/0000-0000-0000-0000"
-title: "ChemoCalib: Chemometrics-Calibrated Constraint-Based Metabolic Modeling via Multi-Block PLS"
-journal: "Bioinformatics"
-year: 2026
-doi: "10.5281/zenodo.XXXXXXX"
+  - family-names: Zhang
+    given-names: Xin
+    affiliation: Capital Normal University
+    
+version: 1.0.0
+date-released: 2026-07-28
+license: MIT
+repository-code: "https://github/chemocalib/chemocalib"
 url: "https://github.com/chemocalib/chemocalib"
+identifiers:
+  
+  - type: doi
+    value: 10.1101/2026.07.xx.xxxxxx
+    description: Preprint (bioRxiv)
