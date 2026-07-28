@@ -120,20 +120,29 @@ docker run -it chemocalib pytest tests/ -v
 
 ## Citation
 
-If you use ChemoCalib in your research, please cite:
+If you use ChemoCalib in your research, please cite the preprint and the software archive:
+Zhang X. (2026) ChemoCalib: Chemometrics-Calibrated Constraint-Based Metabolic Modeling via Multi-Block PLS. bioRxiv 2026.07.xx.xxxxxx. https://doi.org/10.1101/2026.07.xx.xxxxxx
+Software archive: Zhang X. (2026) ChemoCalib v1.0.0. Zenodo. https://doi.org/10.5281/zenodo.YYYYYYY
 
-> Zhang X. (2026) ChemoCalib: Chemometrics-Calibrated Constraint-Based Metabolic
-> Modeling via Multi-Block PLS. *Bioinformatics*.
+
 
 BibTeX:
 ```bibtex
 @article{zhang2026chemocalib,
-  title   = {ChemoCalib: Chemometrics-Calibrated Constraint-Based Metabolic
-             Modeling via Multi-Block PLS},
+  title   = {ChemoCalib: Chemometrics-Calibrated Constraint-Based Metabolic Modeling via Multi-Block PLS},
   author  = {Zhang, Xin},
-  journal = {Bioinformatics},
+  journal = {bioRxiv},
   year    = {2026},
-  doi     = {10.5281/zenodo.XXXXXXX}
+  doi     = {10.1101/2026.07.xx.xxxxxx},
+  note    = {Preprint. Software: https://doi.org/10.5281/zenodo.YYYYYYY}
+}
+
+@misc{chemocalib2026software,
+  title  = {ChemoCalib v1.0.0},
+  author = {Zhang, Xin},
+  year   = {2026},
+  doi    = {10.5281/zenodo.YYYYYYY},
+  url    = {https://github.com/chemocalib/chemocalib}
 }
 ```
 
